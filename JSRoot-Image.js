@@ -126,11 +126,32 @@ function imageZoom(imgID) {
       const scrolledX = window.scrollX;
       const scrolledY = window.scrollY;
       console.log('-------');
-      console.log(cursorX, cursorY);
-      console.log(scrolledY);
+      console.log('Y', cursorY);
+      console.log(imagePosition);
 
+      // TOP BUGGED
       lens.style.top = (cursorY  + scrolledY - (lens.offsetHeight/2)) + 'px';
       lens.style.left = (cursorX - scrolledX - (lens.offsetWidth/2)) + 'px';
+
+      //If cursor is on the left
+      if(cursorX - (lens.offsetWidth/2) < imagePosition.left) {
+         lens.style.left = imagePosition.left + 'px';
+      }
+      // If cursor is on right
+      if (cursorX + (lens.offsetWidth/2) > imagePosition.right) {
+         lens.style.left = (imagePosition.right - lens.offsetWidth) + 'px';
+      }
+
+      // If cursor is on the top
+      if (cursorY - (lens.offsetWidth/2) < imagePosition.top) {
+         lens.style.top = (imagePosition.top + scrolledY ) + 'px';
+      }
+
+      // If cursor is on bottom
+      if(cursorY + (lens.offsetWidth/2) > imagePosition.bottom) {
+         lens.style.top = (imagePosition.bottom + scrolledY - lens.offsetHeight) + 'px';
+
+      }
 
       // // Location of the cusor - siz of the lens / 2
       // // Upper left location of the lens
