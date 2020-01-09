@@ -121,29 +121,45 @@ function imageZoom(imgID) {
       const cursorPos = getCursorPos(e);
       const imagePosition = img.getBoundingClientRect();
 
-      // Location of the cusor - siz of the lens / 2
-      // Upper left location of the lens
-      let x = cursorPos.x - (lens.offsetWidth / 2);
-      let y = cursorPos.y - (lens.offsetHeight / 2);
+      const cursorX = e.clientX;
+      const cursorY = e.clientY;
+      const scrolledX = window.scrollX;
+      const scrolledY = window.scrollY;
+      console.log('-------');
+      console.log(cursorX, cursorY);
+      console.log(scrolledY);
 
-      // Boundaries of Pic
-      if (x > img.width - lens.offsetWidth) {x = img.width - lens.offsetWidth;}
-      if (x < 0) {x = 0;}
-      if (y > img.height - lens.offsetHeight) {y = img.height - lens.offsetHeight;}
-      if (y < 0) {y = 0;}
+      lens.style.top = (cursorY  + scrolledY - (lens.offsetHeight/2)) + 'px';
+      lens.style.left = (cursorX - scrolledX - (lens.offsetWidth/2)) + 'px';
 
-      // Move the lens
-      lens.style.left = (x + imagePosition.x) + "px";
-      lens.style.top = (y + imagePosition.y) + "px";
-
-      // Move the zoom
-      zoom.style.backgroundPosition = "-" + (x * cx) + "px -" + (y * cy) + "px";
+      // // Location of the cusor - siz of the lens / 2
+      // // Upper left location of the lens
+      // let x = cursorPos.x - (lens.offsetWidth / 2);
+      // let y = cursorPos.y - (lens.offsetHeight / 2);
+      //
+      // console.log('------------------');
+      // console.log('y=', y);
+      // console.log('pos=', img.height - imagePosition.top + lens.offsetHeight);
+      // console.log(imagePosition);
+      //
+      // // Boundaries of Pic
+      // if (x > img.width - lens.offsetWidth) {x = img.width - lens.offsetWidth;}
+      // if (x < 0) {x = 0;}
+      // if (y > img.height - imagePosition.top + lens.offsetHeight) {y = imagePosition.height - imagePosition.top + lens.offsetHeight;}
+      // if (y < 0) {y = 0;}
+      //
+      // // Move the lens
+      // lens.style.left = (x + imagePosition.x) + "px";
+      // lens.style.top = (y + imagePosition.y) + "px";
+      //
+      // // Move the zoom
+      // zoom.style.backgroundPosition = "-" + (x * cx) + "px -" + (y * cy) + "px";
    }
 
    function getCursorPos(event) {
       const imagePosition = img.getBoundingClientRect();
-      let x = event.x - imagePosition.left;
-      let y = event.y - imagePosition.top;
+      let x = event.pageX - imagePosition.left;
+      let y = event.pageY - imagePosition.top;
       return {x : x, y : y};
    }
 }
