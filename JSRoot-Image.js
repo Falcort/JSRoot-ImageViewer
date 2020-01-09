@@ -1,0 +1,149 @@
+function drawImageFromFile(file) {
+
+   const id = makeID(10);
+
+   createLens(id);
+
+   const image = document.createElement("img");
+   image.id = id;
+   image.src = file;
+   image.style.maxWidth = '100%';
+   image.style.maxHeight = '100%';
+   document.body.appendChild(image);
+
+   createZoom(id);
+
+   window.addEventListener('load', function() {
+      imageZoom(id);
+   });
+}
+
+function drawImageFromBase64(data) {
+   const id = makeID(10);
+
+   createLens(id);
+
+   const image = document.createElement("img");
+   image.id = id;
+   image.style.maxWidth = '100%';
+   image.style.maxHeight = '100%';
+   image.src = 'data:image/png;base64,' + data;
+   document.body.appendChild(image);
+
+   createZoom(id);
+
+   window.addEventListener('load', function() {
+      imageZoom(id);
+   });
+}
+
+function createLens(masterID) {
+   const lens = document.createElement('div');
+   lens.id = masterID + 'Lens';
+   const style = lens.style;
+
+   style.position = 'absolute';
+   style.border = '1px solid rgb(0, 126, 255)';
+   style.backgroundColor = 'rgba(0, 126, 255, .2)';
+   style.width = '40px';
+   style.height = '40px';
+
+   //TO BE REMOVED IF FIXED
+   // style.opacity = '0';
+
+   document.body.appendChild(lens);
+   return lens;
+}
+
+function createZoom(masterID) {
+   const zoom = document.createElement('div');
+   zoom.id = masterID + 'Zoom';
+
+   const style = zoom.style;
+
+   style.border = '1px solid #f1f1f1';
+   style.width = '300px';
+   style.height = '300px';
+   style.display = 'inline-block';
+   style.opacity = '0';
+
+   document.body.appendChild(zoom);
+   return zoom;
+}
+
+
+function makeID(length) {
+   let result = '';
+   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   const charactersLength = characters.length;
+   for ( let i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
+
+
+function imageZoom(imgID) {
+   const img = document.getElementById(imgID);
+   const zoom = document.getElementById(imgID + 'Zoom');
+   const lens = document.getElementById(imgID + 'Lens');
+
+   // length of the zoom divided by the length od the lens
+   // 302 / 42 = 7.19
+   let cx = zoom.offsetWidth / lens.offsetWidth;
+   let cy = zoom.offsetHeight / lens.offsetHeight;
+
+   zoom.style.backgroundImage = "url('" + img.src + "')";
+
+   // 7.19 * 500 = 3595
+   // Image size multiplied bya the offset
+   zoom.style.backgroundSize = (img.width * cx) + "px " + (img.height * cy) + "px";
+
+   // // Un-display the zoom if the cursor is not on the image
+   lens.addEventListener('mouseout', () => {
+      zoom.style.display = 'none';
+      zoom.style.opacity = '0';
+   });
+
+   // Display the zoom if the cusror is on the image
+   img.addEventListener('mousemove', () => {
+      zoom.style.display = 'inline-block';
+      zoom.style.opacity = '1';
+   });
+
+   // Events listeners
+   lens.addEventListener("mousemove", moveLens);
+   img.addEventListener("mousemove", moveLens);
+
+   function moveLens(e) {
+      e.preventDefault();
+
+      const cursorPos = getCursorPos(e);
+      const imagePosition = img.getBoundingClientRect();
+
+      // Location of the cusor - siz of the lens / 2
+      // Upper left location of the lens
+      let x = cursorPos.x - (lens.offsetWidth / 2);
+      let y = cursorPos.y - (lens.offsetHeight / 2);
+
+      // Boundaries of Pic
+      if (x > img.width - lens.offsetWidth) {x = img.width - lens.offsetWidth;}
+      if (x < 0) {x = 0;}
+      if (y > img.height - lens.offsetHeight) {y = img.height - lens.offsetHeight;}
+      if (y < 0) {y = 0;}
+
+      // Move the lens
+      lens.style.left = (x + imagePosition.x) + "px";
+      lens.style.top = (y + imagePosition.y) + "px";
+
+      // Move the zoom
+      zoom.style.backgroundPosition = "-" + (x * cx) + "px -" + (y * cy) + "px";
+   }
+
+   function getCursorPos(event) {
+      const imagePosition = img.getBoundingClientRect();
+      let x = event.x - imagePosition.left;
+      let y = event.y - imagePosition.top;
+      return {x : x, y : y};
+   }
+}
