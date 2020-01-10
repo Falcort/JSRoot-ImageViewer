@@ -1,5 +1,5 @@
 const LENS_BORDER_SIZE = 1;
-const LENGTH_MIN_SIZE = 40;
+const LENGTH_MIN_SIZE = 20;
 const ZOOM_FACTOR = 7;
 
 function drawImageFromFile(file) {
