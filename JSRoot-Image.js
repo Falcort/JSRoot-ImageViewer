@@ -1,4 +1,5 @@
 const LENS_BORDER_SIZE = 1;
+const LENGTH_MIN_SIZE = 40;
 
 function drawImageFromFile(file) {
 
@@ -113,27 +114,40 @@ function imageZoom(imgID) {
       const height = Number(lens.style.height.slice(0, -2));
       const width = Number(lens.style.width.slice(0, -2));
 
+      let resultWidth;
+      let resultHeight;
+
       const factor = 2;
 
 
 
       //Zoom direction
       if(e.deltaY > 0) {
-         lens.style.width = (width - factor) + 'px';
-         lens.style.height = (height - factor) +'px';
+         resultWidth = (width - factor);
+         resultHeight = (height - factor);
       }
       if(e.deltaY < 0) {
-         lens.style.width = (width + factor) + 'px';
-         lens.style.height = (height + factor) +'px';
+         resultWidth = (width + factor);
+         resultHeight = (height + factor);
+      }
+
+      if(resultWidth < LENGTH_MIN_SIZE) {
+         resultWidth = LENGTH_MIN_SIZE;
+      }
+      if(resultHeight < LENGTH_MIN_SIZE) {
+         resultHeight = LENGTH_MIN_SIZE;
       }
 
       // Prevent zooming bigger than the picture
-      if(lens.offsetHeight > img.offsetHeight) {
-         lens.style.height = (img.offsetHeight - LENS_BORDER_SIZE*2) + 'px';
+      if(resultHeight > img.offsetHeight - LENS_BORDER_SIZE*2) {
+         resultHeight = (img.offsetHeight - LENS_BORDER_SIZE*2);
       }
-      if(lens.offsetWidth > img.offsetWidth) {
-         lens.style.width = (img.offsetWidth - LENS_BORDER_SIZE*2) + 'px';
+      if(resultWidth > img.offsetWidth - LENS_BORDER_SIZE*2) {
+         resultWidth = (img.offsetWidth - LENS_BORDER_SIZE*2);
       }
+
+      lens.style.width = resultWidth + 'px';
+      lens.style.height = resultHeight + 'px'
    });
 
    function moveLens(e) {
