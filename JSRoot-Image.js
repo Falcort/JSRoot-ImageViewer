@@ -67,7 +67,6 @@ function createZoom(masterID) {
    style.height = '300px';
    style.display = 'inline-block';
    style.backgroundRepeat = 'no-repeat';
-   style.opacity = '0';
 
    document.body.appendChild(zoom);
    return zoom;
@@ -90,30 +89,34 @@ function imageZoom(imgID) {
    const zoom = document.getElementById(imgID + 'Zoom');
    const lens = document.getElementById(imgID + 'Lens');
 
-   let imagePosition;
-   let cursorX;
-   let cursorY;
-   let scrolledX;
-   let scrolledY;
-   let posZoomX;
-   let posZoomY;
-
-   // length of the zoom divided by the length od the lens
-   let cx;
-   let cy;
+   let cursorOnPicture = false;
+   let cursorOnLens = false;
 
    zoom.style.backgroundImage = "url('" + img.src + "')";
 
-   // // Un-display the zoom if the cursor is not on the image
-   lens.addEventListener('mouseout', () => {
-      zoom.style.display = 'none';
-      zoom.style.opacity = '0';
+
+   img.addEventListener('mouseenter', () => {
+      cursorOnPicture = true;
+
+      zoom.style.display = 'inline-block';
+      lens.style.display = 'initial';
    });
 
-   // Display the zoom if the cusror is on the image
-   img.addEventListener('mousemove', () => {
-      zoom.style.display = 'inline-block';
-      zoom.style.opacity = '1';
+   img.addEventListener('mouseleave', () => {
+      cursorOnPicture = false;
+   });
+
+   lens.addEventListener('mouseenter', () => {
+      cursorOnLens = true;
+   });
+
+   lens.addEventListener('mouseleave', () => {
+      cursorOnLens = false;
+
+      if(!(cursorOnLens && cursorOnPicture)) {
+         zoom.style.display = 'none';
+         lens.style.display = 'none';
+      }
    });
 
    // Events listeners
@@ -130,14 +133,14 @@ function imageZoom(imgID) {
       }
 
       imagePosition = img.getBoundingClientRect();
-      scrolledX = window.scrollX;
-      scrolledY = window.scrollY;
-      posZoomX;
-      posZoomY;
+      let scrolledX = window.scrollX;
+      let scrolledY = window.scrollY;
+      let posZoomX;
+      let posZoomY;
 
       // length of the zoom divided by the length od the lens
-      cx = zoom.offsetWidth / lens.offsetWidth;
-      cy = zoom.offsetHeight / lens.offsetHeight;
+      let cx = zoom.offsetWidth / lens.offsetWidth;
+      let cy = zoom.offsetHeight / lens.offsetHeight;
 
       // 7.19 * 500 = 3595
       // Image size multiplied bya the offset
