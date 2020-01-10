@@ -1,5 +1,6 @@
 const LENS_BORDER_SIZE = 1;
 const LENGTH_MIN_SIZE = 40;
+const ZOOM_FACTOR = 7;
 
 function drawImageFromFile(file) {
 
@@ -89,6 +90,18 @@ function imageZoom(imgID) {
    const zoom = document.getElementById(imgID + 'Zoom');
    const lens = document.getElementById(imgID + 'Lens');
 
+   let imagePosition;
+   let cursorX;
+   let cursorY;
+   let scrolledX;
+   let scrolledY;
+   let posZoomX;
+   let posZoomY;
+
+   // length of the zoom divided by the length od the lens
+   let cx;
+   let cy;
+
    zoom.style.backgroundImage = "url('" + img.src + "')";
 
    // // Un-display the zoom if the cursor is not on the image
@@ -107,64 +120,24 @@ function imageZoom(imgID) {
    lens.addEventListener("mousemove", moveLens);
    img.addEventListener("mousemove", moveLens);
 
-   lens.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-
-      const height = Number(lens.style.height.slice(0, -2));
-      const width = Number(lens.style.width.slice(0, -2));
-
-      let resultWidth;
-      let resultHeight;
-
-      const factor = 2;
-
-
-
-      //Zoom direction
-      if(e.deltaY > 0) {
-         resultWidth = (width - factor);
-         resultHeight = (height - factor);
-      }
-      if(e.deltaY < 0) {
-         resultWidth = (width + factor);
-         resultHeight = (height + factor);
-      }
-
-      if(resultWidth < LENGTH_MIN_SIZE) {
-         resultWidth = LENGTH_MIN_SIZE;
-      }
-      if(resultHeight < LENGTH_MIN_SIZE) {
-         resultHeight = LENGTH_MIN_SIZE;
-      }
-
-      // Prevent zooming bigger than the picture
-      if(resultHeight > img.offsetHeight - LENS_BORDER_SIZE*2) {
-         resultHeight = (img.offsetHeight - LENS_BORDER_SIZE*2);
-      }
-      if(resultWidth > img.offsetWidth - LENS_BORDER_SIZE*2) {
-         resultWidth = (img.offsetWidth - LENS_BORDER_SIZE*2);
-      }
-
-      lens.style.width = resultWidth + 'px';
-      lens.style.height = resultHeight + 'px'
-   });
+   lens.addEventListener('wheel', zoomFactor);
 
    function moveLens(e) {
-      e.preventDefault();
+      if(e) {
+         e.preventDefault();
+         cursorX = e.clientX;
+         cursorY = e.clientY;
+      }
 
-      const imagePosition = img.getBoundingClientRect();
-      const cursorX = e.clientX;
-      const cursorY = e.clientY;
-      const scrolledX = window.scrollX;
-      const scrolledY = window.scrollY;
-      let posZoomX;
-      let posZoomY;
+      imagePosition = img.getBoundingClientRect();
+      scrolledX = window.scrollX;
+      scrolledY = window.scrollY;
+      posZoomX;
+      posZoomY;
 
       // length of the zoom divided by the length od the lens
-      // 302 / 42 = 7.19
-      let cx = zoom.offsetWidth / lens.offsetWidth;
-      let cy = zoom.offsetHeight / lens.offsetHeight;
+      cx = zoom.offsetWidth / lens.offsetWidth;
+      cy = zoom.offsetHeight / lens.offsetHeight;
 
       // 7.19 * 500 = 3595
       // Image size multiplied bya the offset
@@ -200,5 +173,54 @@ function imageZoom(imgID) {
       }
 
       zoom.style.backgroundPosition = `-${(posZoomX - imagePosition.x - scrolledX) * cx}px -${(posZoomY - imagePosition.y - scrolledY) * cy }px`;
+   }
+
+   function zoomFactor(e) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      imagePosition = img.getBoundingClientRect();
+      const height = Number(lens.style.height.slice(0, -2));
+      const width = Number(lens.style.width.slice(0, -2));
+
+      let resultWidth;
+      let resultHeight;
+
+      //Zoom direction
+      if(e.deltaY > 0) {
+         resultWidth = (width - ZOOM_FACTOR);
+         resultHeight = (height - ZOOM_FACTOR);
+      }
+      if(e.deltaY < 0) {
+         resultWidth = (width + ZOOM_FACTOR);
+         resultHeight = (height + ZOOM_FACTOR);
+      }
+
+      // Force minimum size
+      if(resultWidth < LENGTH_MIN_SIZE) {
+         resultWidth = LENGTH_MIN_SIZE;
+      }
+      if(resultHeight < LENGTH_MIN_SIZE) {
+         resultHeight = LENGTH_MIN_SIZE;
+      }
+
+      // Prevent zooming bigger than the picture
+      if(resultHeight > img.offsetHeight - LENS_BORDER_SIZE*2) {
+         resultHeight = (img.offsetHeight - LENS_BORDER_SIZE*2);
+
+         //Keep the lens square
+         resultWidth = (img.offsetHeight - LENS_BORDER_SIZE*2);
+      }
+      if(resultWidth > img.offsetWidth - LENS_BORDER_SIZE*2) {
+         resultWidth = (img.offsetWidth - LENS_BORDER_SIZE*2);
+
+         //Kep the lens square
+         resultHeight = (img.offsetWidth - LENS_BORDER_SIZE*2);
+      }
+
+      lens.style.width = resultWidth + 'px';
+      lens.style.height = resultHeight + 'px';
+
+      moveLens();
    }
 }
