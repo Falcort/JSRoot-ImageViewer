@@ -48,9 +48,6 @@ function createLens(masterID) {
    style.width = '40px';
    style.height = '40px';
 
-   //TO BE REMOVED IF FIXED
-   // style.opacity = '0';
-
    document.body.appendChild(lens);
    return lens;
 }
@@ -126,6 +123,12 @@ function imageZoom(imgID) {
          lens.style.width = (width + factor) + 'px';
          lens.style.height = (height + factor) +'px';
       }
+      if(lens.offsetHeight > img.offsetHeight) {
+         lens.style.height = img.offsetHeight + 'px';
+      }
+      if(lens.offsetWidth > img.offsetWidth) {
+         lens.style.width = img.offsetWidth + 'px';
+      }
    });
 
    function moveLens(e) {
@@ -166,13 +169,13 @@ function imageZoom(imgID) {
       }
 
       // If cursor is on the top
-      if (cursorY - (lens.offsetWidth/2) < imagePosition.top) {
+      if (cursorY - (lens.offsetHeight/2) < imagePosition.top) {
          lens.style.top = (imagePosition.top + scrolledY ) + 'px';
          posZoomY = imagePosition.top + scrolledY;
       }
 
       // If cursor is on bottom
-      if(cursorY + (lens.offsetWidth/2) > imagePosition.bottom) {
+      if(cursorY + (lens.offsetHeight/2) > imagePosition.bottom) {
          lens.style.top = (imagePosition.bottom + scrolledY - lens.offsetHeight) + 'px';
          posZoomY = imagePosition.bottom + scrolledY - lens.offsetHeight;
       }
