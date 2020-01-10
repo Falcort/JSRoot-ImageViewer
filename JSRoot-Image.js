@@ -1,3 +1,5 @@
+const LENS_BORDER_SIZE = 1;
+
 function drawImageFromFile(file) {
 
    const id = makeID(10);
@@ -43,7 +45,7 @@ function createLens(masterID) {
    const style = lens.style;
 
    style.position = 'absolute';
-   style.border = '1px solid rgb(0, 126, 255)';
+   style.border = `${LENS_BORDER_SIZE}px solid rgb(0, 126, 255)`;
    style.backgroundColor = 'rgba(0, 126, 255, .2)';
    style.width = '40px';
    style.height = '40px';
@@ -115,6 +117,7 @@ function imageZoom(imgID) {
 
 
 
+      //Zoom direction
       if(e.deltaY > 0) {
          lens.style.width = (width - factor) + 'px';
          lens.style.height = (height - factor) +'px';
@@ -123,11 +126,13 @@ function imageZoom(imgID) {
          lens.style.width = (width + factor) + 'px';
          lens.style.height = (height + factor) +'px';
       }
+
+      // Prevent zooming bigger than the picture
       if(lens.offsetHeight > img.offsetHeight) {
-         lens.style.height = img.offsetHeight + 'px';
+         lens.style.height = (img.offsetHeight - LENS_BORDER_SIZE*2) + 'px';
       }
       if(lens.offsetWidth > img.offsetWidth) {
-         lens.style.width = img.offsetWidth + 'px';
+         lens.style.width = (img.offsetWidth - LENS_BORDER_SIZE*2) + 'px';
       }
    });
 
