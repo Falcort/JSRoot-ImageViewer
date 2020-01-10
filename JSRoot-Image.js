@@ -107,6 +107,27 @@ function imageZoom(imgID) {
    lens.addEventListener("mousemove", moveLens);
    img.addEventListener("mousemove", moveLens);
 
+   lens.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      const height = Number(lens.style.height.slice(0, -2));
+      const width = Number(lens.style.width.slice(0, -2));
+
+      const factor = 2;
+
+
+
+      if(e.deltaY > 0) {
+         lens.style.width = (width - factor) + 'px';
+         lens.style.height = (height - factor) +'px';
+      }
+      if(e.deltaY < 0) {
+         lens.style.width = (width + factor) + 'px';
+         lens.style.height = (height + factor) +'px';
+      }
+   });
+
    function moveLens(e) {
       e.preventDefault();
 
