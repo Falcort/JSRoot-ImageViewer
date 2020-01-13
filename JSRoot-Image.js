@@ -1,6 +1,7 @@
 const LENS_BORDER_SIZE = 1;
 const LENGTH_MIN_SIZE = 20;
 const ZOOM_FACTOR = 7;
+const ZOOM_LENGTH_FACTOR = 5;
 
 function drawImageFromFile(file) {
 
@@ -63,10 +64,9 @@ function createZoom(masterID) {
    const style = zoom.style;
 
    style.border = '1px solid #f1f1f1';
-   style.width = '300px';
-   style.height = '300px';
    style.display = 'inline-block';
    style.backgroundRepeat = 'no-repeat';
+   style.position = 'absolute';
 
    document.body.appendChild(zoom);
    return zoom;
@@ -137,6 +137,14 @@ function imageZoom(imgID) {
       let scrolledY = window.scrollY;
       let posZoomX;
       let posZoomY;
+
+      //Set of the zoom place
+      const length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
+      zoom.style.height = length + 'px';
+      zoom.style.width = length + 'px';
+      zoom.style.top = imagePosition.y + 'px';
+      zoom.style.left = imagePosition.x + 'px';
+
 
       // length of the zoom divided by the length od the lens
       let cx = zoom.offsetWidth / lens.offsetWidth;
