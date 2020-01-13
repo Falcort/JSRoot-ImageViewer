@@ -1,4 +1,5 @@
 const LENS_BORDER_SIZE = 1;
+const ZOOM_BORDER_SIZE = 1;
 const LENGTH_MIN_SIZE = 20;
 const ZOOM_FACTOR = 7;
 const ZOOM_LENGTH_FACTOR = 5;
@@ -63,7 +64,7 @@ function createZoom(masterID) {
 
    const style = zoom.style;
 
-   style.border = '1px solid #f1f1f1';
+   style.border = `${ZOOM_BORDER_SIZE}px solid #f1f1f1`;
    style.display = 'inline-block';
    style.backgroundRepeat = 'no-repeat';
    style.position = 'absolute';
@@ -138,13 +139,7 @@ function imageZoom(imgID) {
       let posZoomX;
       let posZoomY;
 
-      //Set of the zoom place
-      const length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
-      zoom.style.height = length + 'px';
-      zoom.style.width = length + 'px';
-      zoom.style.top = imagePosition.y + 'px';
-      zoom.style.left = imagePosition.x + 'px';
-
+      moveZoom(e);
 
       // length of the zoom divided by the length od the lens
       let cx = zoom.offsetWidth / lens.offsetWidth;
@@ -184,6 +179,22 @@ function imageZoom(imgID) {
       }
 
       zoom.style.backgroundPosition = `-${(posZoomX - imagePosition.x - scrolledX) * cx}px -${(posZoomY - imagePosition.y - scrolledY) * cy }px`;
+   }
+
+   function moveZoom(e) {
+      //Set of the zoom place
+      const length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
+      zoom.style.height = length + 'px';
+      zoom.style.width = length + 'px';
+      zoom.style.top = imagePosition.y + 'px';
+
+      if(e && e.screenX !== undefined) {
+         if(e.screenX >= imagePosition.x && e.screenX <= imagePosition.x + length + lens.offsetWidth/2) {
+            zoom.style.left = (img.offsetWidth - length + imagePosition.x - ZOOM_BORDER_SIZE*2) + 'px'; // Right
+         } else {
+            zoom.style.left = imagePosition.x + 'px'; // Left
+         }
+      }
    }
 
    function zoomFactor(e) {
