@@ -68,6 +68,7 @@ function createZoom(masterID) {
    style.display = 'inline-block';
    style.backgroundRepeat = 'no-repeat';
    style.position = 'absolute';
+   style.transition = 'top .3s, left .3s';
 
    document.body.appendChild(zoom);
    return zoom;
@@ -182,17 +183,27 @@ function imageZoom(imgID) {
    }
 
    function moveZoom(e) {
+
       //Set of the zoom place
+      const scrolledY = window.scrollY;
       const length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
       zoom.style.height = length + 'px';
       zoom.style.width = length + 'px';
-      zoom.style.top = imagePosition.y + 'px';
 
       if(e && e.screenX !== undefined) {
-         if(e.screenX >= imagePosition.x && e.screenX <= imagePosition.x + length + lens.offsetWidth/2) {
-            zoom.style.left = (img.offsetWidth - length + imagePosition.x - ZOOM_BORDER_SIZE*2) + 'px'; // Right
+
+         //Left or Right
+         if(e.clientX >= imagePosition.x && e.clientX <= imagePosition.width/2 + lens.offsetWidth/2){
+            zoom.style.left = (img.offsetWidth - length + imagePosition.x - ZOOM_BORDER_SIZE*2) + 'px';
          } else {
-            zoom.style.left = imagePosition.x + 'px'; // Left
+            zoom.style.left = imagePosition.x + 'px';
+         }
+
+         // Top or Bottom
+         if(e.clientY >= imagePosition.y - scrolledY && e.clientY <=imagePosition.height/2 + lens.offsetWidth/2 - scrolledY) {
+            zoom.style.top = imagePosition.bottom - length + scrolledY + 'px';
+         } else {
+            zoom.style.top = imagePosition.y + scrolledY + 'px';
          }
       }
    }
