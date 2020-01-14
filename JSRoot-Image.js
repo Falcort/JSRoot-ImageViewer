@@ -4,38 +4,16 @@ const LENGTH_MIN_SIZE = 20;
 const ZOOM_FACTOR = 7;
 const ZOOM_LENGTH_FACTOR = 5;
 
-function drawImageFromFile(file) {
-
+function drawImage(src, divid) {
    const id = makeID(10);
-
    createLens(id);
-
    const image = document.createElement("img");
    image.id = id;
-   image.src = file;
+   image.src = src;
    image.style.maxWidth = '100%';
    image.style.maxHeight = '100%';
-   document.body.appendChild(image);
-
-   createZoom(id);
-
-   window.addEventListener('load', function() {
-      imageZoom(id);
-   });
-}
-
-function drawImageFromBase64(data) {
-   const id = makeID(10);
-
-   createLens(id);
-
-   const image = document.createElement("img");
-   image.id = id;
-   image.style.maxWidth = '100%';
-   image.style.maxHeight = '100%';
-   image.src = 'data:image/png;base64,' + data;
-   document.body.appendChild(image);
-
+   document.getElementById(divid).appendChild(image);
+   // document.body.appendChild(image);
    createZoom(id);
 
    window.addEventListener('load', function() {
@@ -200,7 +178,7 @@ function imageZoom(imgID) {
          }
 
          // Top or Bottom
-         if(e.clientY >= imagePosition.y - scrolledY && e.clientY <=imagePosition.height/2 + lens.offsetWidth/2 - scrolledY) {
+         if(e.clientY >= imagePosition.y && e.clientY <= imagePosition.y + imagePosition.height/2) {
             zoom.style.top = imagePosition.bottom - length + scrolledY + 'px';
          } else {
             zoom.style.top = imagePosition.y + scrolledY + 'px';
