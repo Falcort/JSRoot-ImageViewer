@@ -4,6 +4,8 @@ const LENGTH_MIN_SIZE = 20;
 const ZOOM_FACTOR = 7;
 const ZOOM_LENGTH_FACTOR = 5;
 
+let IS_ZOOM = false;
+
 function drawImage(src, divid) {
    const id = makeID(10);
    createLens(id);
@@ -18,6 +20,7 @@ function drawImage(src, divid) {
 
    window.addEventListener('load', function() {
       imageZoom(id);
+      createControls(id);
    });
 }
 
@@ -31,6 +34,7 @@ function createLens(masterID) {
    style.backgroundColor = 'rgba(0, 126, 255, .2)';
    style.width = '40px';
    style.height = '40px';
+   style.display = 'none';
 
    document.body.appendChild(lens);
    return lens;
@@ -50,6 +54,32 @@ function createZoom(masterID) {
 
    document.body.appendChild(zoom);
    return zoom;
+}
+
+function createControls(masterID) {
+   const image = document.getElementById(masterID);
+   const imagePosition = image.getBoundingClientRect();
+   const controls = document.createElement('div');
+   controls.id = masterID + 'Controls';
+   controls.style.position = 'absolute';
+   document.body.appendChild(controls);
+
+   const zoomButton = document.createElement("button");
+   zoomButton.id = masterID + 'ZoomButton';
+   zoomButton.textContent = 'Zoom';
+   zoomButton.addEventListener('click', () => {
+      IS_ZOOM = !IS_ZOOM;
+
+      if(IS_ZOOM) {
+         document.getElementById(masterID+ 'Zoom').style.display = 'none';
+         document.getElementById(masterID+ 'Lens').style.display = 'none';
+      }
+   });
+
+   controls.appendChild(zoomButton);
+
+   controls.style.top = (imagePosition.y + imagePosition.height - controls.getBoundingClientRect().height - 5) + 'px';
+   controls.style.left = (imagePosition.x + 5) + 'px';
 }
 
 
@@ -76,10 +106,14 @@ function imageZoom(imgID) {
 
 
    img.addEventListener('mouseenter', () => {
-      cursorOnPicture = true;
+      if(IS_ZOOM) {
 
-      zoom.style.display = 'inline-block';
-      lens.style.display = 'initial';
+         cursorOnPicture = true;
+
+         zoom.style.display = 'inline-block';
+         lens.style.display = 'initial';
+
+      }
    });
 
    img.addEventListener('mouseleave', () => {
@@ -91,12 +125,18 @@ function imageZoom(imgID) {
    });
 
    lens.addEventListener('mouseleave', () => {
-      cursorOnLens = false;
 
-      if(!(cursorOnLens && cursorOnPicture)) {
-         zoom.style.display = 'none';
-         lens.style.display = 'none';
+      if(IS_ZOOM) {
+
+         cursorOnLens = false;
+
+         if(!(cursorOnLens && cursorOnPicture)) {
+            zoom.style.display = 'none';
+            lens.style.display = 'none';
+         }
+
       }
+
    });
 
    // Events listeners
@@ -106,83 +146,92 @@ function imageZoom(imgID) {
    lens.addEventListener('wheel', zoomFactor);
 
    function moveLens(e) {
-      if(e) {
-         e.preventDefault();
-         cursorX = e.clientX;
-         cursorY = e.clientY;
+
+      if(IS_ZOOM) {
+
+         if(e) {
+            e.preventDefault();
+            cursorX = e.clientX;
+            cursorY = e.clientY;
+         }
+
+         imagePosition = img.getBoundingClientRect();
+         let scrolledX = window.scrollX;
+         let scrolledY = window.scrollY;
+         let posZoomX;
+         let posZoomY;
+
+         moveZoom(e);
+
+         // length of the zoom divided by the length od the lens
+         let cx = zoom.offsetWidth / lens.offsetWidth;
+         let cy = zoom.offsetHeight / lens.offsetHeight;
+
+         // 7.19 * 500 = 3595
+         // Image size multiplied bya the offset
+         zoom.style.backgroundSize = (img.width * cx) + "px " + (img.height * cy) + "px";
+
+         //MOVE OF THE LENS
+         lens.style.top = (cursorY  + scrolledY - (lens.offsetHeight/2)) + 'px';
+         lens.style.left = (cursorX - scrolledX - (lens.offsetWidth/2)) + 'px';
+         posZoomY = cursorY  + scrolledY - (lens.offsetHeight/2);
+         posZoomX = cursorX - scrolledX - (lens.offsetWidth/2);
+
+         //If cursor is on the left
+         if(cursorX - (lens.offsetWidth/2) < imagePosition.left) {
+            lens.style.left = imagePosition.left + 'px';
+            posZoomX = imagePosition.left;
+         }
+         // If cursor is on right
+         if (cursorX + (lens.offsetWidth/2) > imagePosition.right) {
+            lens.style.left = (imagePosition.right - lens.offsetWidth) + 'px';
+            posZoomX = imagePosition.right - lens.offsetWidth;
+         }
+
+         // If cursor is on the top
+         if (cursorY - (lens.offsetHeight/2) < imagePosition.top) {
+            lens.style.top = (imagePosition.top + scrolledY ) + 'px';
+            posZoomY = imagePosition.top + scrolledY;
+         }
+
+         // If cursor is on bottom
+         if(cursorY + (lens.offsetHeight/2) > imagePosition.bottom) {
+            lens.style.top = (imagePosition.bottom + scrolledY - lens.offsetHeight) + 'px';
+            posZoomY = imagePosition.bottom + scrolledY - lens.offsetHeight;
+         }
+
+         zoom.style.backgroundPosition = `-${(posZoomX - imagePosition.x - scrolledX) * cx}px -${(posZoomY - imagePosition.y - scrolledY) * cy }px`;
+
       }
-
-      imagePosition = img.getBoundingClientRect();
-      let scrolledX = window.scrollX;
-      let scrolledY = window.scrollY;
-      let posZoomX;
-      let posZoomY;
-
-      moveZoom(e);
-
-      // length of the zoom divided by the length od the lens
-      let cx = zoom.offsetWidth / lens.offsetWidth;
-      let cy = zoom.offsetHeight / lens.offsetHeight;
-
-      // 7.19 * 500 = 3595
-      // Image size multiplied bya the offset
-      zoom.style.backgroundSize = (img.width * cx) + "px " + (img.height * cy) + "px";
-
-      //MOVE OF THE LENS
-      lens.style.top = (cursorY  + scrolledY - (lens.offsetHeight/2)) + 'px';
-      lens.style.left = (cursorX - scrolledX - (lens.offsetWidth/2)) + 'px';
-      posZoomY = cursorY  + scrolledY - (lens.offsetHeight/2);
-      posZoomX = cursorX - scrolledX - (lens.offsetWidth/2);
-
-      //If cursor is on the left
-      if(cursorX - (lens.offsetWidth/2) < imagePosition.left) {
-         lens.style.left = imagePosition.left + 'px';
-         posZoomX = imagePosition.left;
-      }
-      // If cursor is on right
-      if (cursorX + (lens.offsetWidth/2) > imagePosition.right) {
-         lens.style.left = (imagePosition.right - lens.offsetWidth) + 'px';
-         posZoomX = imagePosition.right - lens.offsetWidth;
-      }
-
-      // If cursor is on the top
-      if (cursorY - (lens.offsetHeight/2) < imagePosition.top) {
-         lens.style.top = (imagePosition.top + scrolledY ) + 'px';
-         posZoomY = imagePosition.top + scrolledY;
-      }
-
-      // If cursor is on bottom
-      if(cursorY + (lens.offsetHeight/2) > imagePosition.bottom) {
-         lens.style.top = (imagePosition.bottom + scrolledY - lens.offsetHeight) + 'px';
-         posZoomY = imagePosition.bottom + scrolledY - lens.offsetHeight;
-      }
-
-      zoom.style.backgroundPosition = `-${(posZoomX - imagePosition.x - scrolledX) * cx}px -${(posZoomY - imagePosition.y - scrolledY) * cy }px`;
    }
 
    function moveZoom(e) {
 
-      //Set of the zoom place
-      const scrolledY = window.scrollY;
-      const length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
-      zoom.style.height = length + 'px';
-      zoom.style.width = length + 'px';
+      if(IS_ZOOM) {
 
-      if(e && e.screenX !== undefined) {
+         //Set of the zoom place
+         const scrolledY = window.scrollY;
+         const length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
+         zoom.style.height = length + 'px';
+         zoom.style.width = length + 'px';
 
-         //Left or Right
-         if(e.clientX >= imagePosition.x && e.clientX <= imagePosition.x + imagePosition.width/2) {
-            zoom.style.left = (img.offsetWidth - length + imagePosition.x - ZOOM_BORDER_SIZE*2) + 'px';
-         } else {
-            zoom.style.left = imagePosition.x + 'px';
+         if(e && e.screenX !== undefined) {
+
+            //Left or Right
+            if(e.clientX >= imagePosition.x && e.clientX <= imagePosition.x + imagePosition.width/2) {
+               zoom.style.left = (img.offsetWidth - length + imagePosition.x - ZOOM_BORDER_SIZE*2) + 'px';
+            } else {
+               zoom.style.left = imagePosition.x + 'px';
+            }
+
+            // Top or Bottom
+            if(e.clientY >= imagePosition.y && e.clientY <= imagePosition.y + imagePosition.height/2) {
+               zoom.style.top = imagePosition.bottom - length + scrolledY + 'px';
+            } else {
+               zoom.style.top = imagePosition.y + scrolledY + 'px';
+            }
          }
 
-         // Top or Bottom
-         if(e.clientY >= imagePosition.y && e.clientY <= imagePosition.y + imagePosition.height/2) {
-            zoom.style.top = imagePosition.bottom - length + scrolledY + 'px';
-         } else {
-            zoom.style.top = imagePosition.y + scrolledY + 'px';
-         }
       }
    }
 
@@ -190,48 +239,52 @@ function imageZoom(imgID) {
       e.preventDefault();
       e.stopImmediatePropagation();
 
-      imagePosition = img.getBoundingClientRect();
-      const height = Number(lens.style.height.slice(0, -2));
-      const width = Number(lens.style.width.slice(0, -2));
+      if(IS_ZOOM) {
 
-      let resultWidth;
-      let resultHeight;
+         imagePosition = img.getBoundingClientRect();
+         const height = Number(lens.style.height.slice(0, -2));
+         const width = Number(lens.style.width.slice(0, -2));
 
-      //Zoom direction
-      if(e.deltaY > 0) {
-         resultWidth = (width - ZOOM_FACTOR);
-         resultHeight = (height - ZOOM_FACTOR);
+         let resultWidth;
+         let resultHeight;
+
+         //Zoom direction
+         if(e.deltaY > 0) {
+            resultWidth = (width - ZOOM_FACTOR);
+            resultHeight = (height - ZOOM_FACTOR);
+         }
+         if(e.deltaY < 0) {
+            resultWidth = (width + ZOOM_FACTOR);
+            resultHeight = (height + ZOOM_FACTOR);
+         }
+
+         // Force minimum size
+         if(resultWidth < LENGTH_MIN_SIZE) {
+            resultWidth = LENGTH_MIN_SIZE;
+         }
+         if(resultHeight < LENGTH_MIN_SIZE) {
+            resultHeight = LENGTH_MIN_SIZE;
+         }
+
+         // Prevent zooming bigger than the picture
+         if(resultHeight > img.offsetHeight - LENS_BORDER_SIZE*2) {
+            resultHeight = (img.offsetHeight - LENS_BORDER_SIZE*2);
+
+            //Keep the lens square
+            resultWidth = (img.offsetHeight - LENS_BORDER_SIZE*2);
+         }
+         if(resultWidth > img.offsetWidth - LENS_BORDER_SIZE*2) {
+            resultWidth = (img.offsetWidth - LENS_BORDER_SIZE*2);
+
+            //Kep the lens square
+            resultHeight = (img.offsetWidth - LENS_BORDER_SIZE*2);
+         }
+
+         lens.style.width = resultWidth + 'px';
+         lens.style.height = resultHeight + 'px';
+
+         moveLens();
+
       }
-      if(e.deltaY < 0) {
-         resultWidth = (width + ZOOM_FACTOR);
-         resultHeight = (height + ZOOM_FACTOR);
-      }
-
-      // Force minimum size
-      if(resultWidth < LENGTH_MIN_SIZE) {
-         resultWidth = LENGTH_MIN_SIZE;
-      }
-      if(resultHeight < LENGTH_MIN_SIZE) {
-         resultHeight = LENGTH_MIN_SIZE;
-      }
-
-      // Prevent zooming bigger than the picture
-      if(resultHeight > img.offsetHeight - LENS_BORDER_SIZE*2) {
-         resultHeight = (img.offsetHeight - LENS_BORDER_SIZE*2);
-
-         //Keep the lens square
-         resultWidth = (img.offsetHeight - LENS_BORDER_SIZE*2);
-      }
-      if(resultWidth > img.offsetWidth - LENS_BORDER_SIZE*2) {
-         resultWidth = (img.offsetWidth - LENS_BORDER_SIZE*2);
-
-         //Kep the lens square
-         resultHeight = (img.offsetWidth - LENS_BORDER_SIZE*2);
-      }
-
-      lens.style.width = resultWidth + 'px';
-      lens.style.height = resultHeight + 'px';
-
-      moveLens();
    }
 }
