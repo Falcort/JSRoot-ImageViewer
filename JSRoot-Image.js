@@ -171,7 +171,7 @@ function imageZoom(imgID) {
       if(e && e.screenX !== undefined) {
 
          //Left or Right
-         if(e.clientX >= imagePosition.x && e.clientX <= imagePosition.width/2 + lens.offsetWidth/2){
+         if(e.clientX >= imagePosition.x && e.clientX <= imagePosition.x + imagePosition.width/2) {
             zoom.style.left = (img.offsetWidth - length + imagePosition.x - ZOOM_BORDER_SIZE*2) + 'px';
          } else {
             zoom.style.left = imagePosition.x + 'px';
