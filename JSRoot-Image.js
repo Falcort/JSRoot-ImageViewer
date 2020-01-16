@@ -1,29 +1,44 @@
-const LENS_BORDER_SIZE = 1;
-const ZOOM_BORDER_SIZE = 1;
-const LENGTH_MIN_SIZE = 20;
-const ZOOM_FACTOR = 7;
-const ZOOM_LENGTH_FACTOR = 5;
+const LENS_BORDER_SIZE = 1; // The border size of the lens that move with the cursor
+const ZOOM_BORDER_SIZE = 1; // The border size of the resulted zoom area
+const LENGTH_MIN_SIZE = 20; // The min size of the lens
+const ZOOM_FACTOR = 7; // This value is the biggest value of the length or width divided by this, in order to always have a % of the picture for the result zoom size
+const ZOOM_LENGTH_FACTOR = 5; // At which speed the lens will grow on scrolling, each scroll event it will be this var bigger (in pixels)
 
-let IS_ZOOM = false;
+const DIV = {}; // The main div, initialized at first !
+const IS_ZOOM = {}; // If the zoom is enabled for the picture;
 
+
+/**
+ * Main function of the script
+ * This take two parameters, one is the SRC of the picture, it can be an directory or a Base64 code or whatever the <img> can take
+ *
+ * @param src -- normal <img> src
+ * @param divid -- The ID where to dray the picture
+ */
 function drawImage(src, divid) {
-   const id = makeID(10);
-   createLens(id);
+   DIV[divid] = document.getElementById(divid);
+   IS_ZOOM[divid] = false;
+   createLens(divid);
    const image = document.createElement("img");
-   image.id = id;
+   image.id = divid + 'Image';
    image.src = src;
    image.style.maxWidth = '100%';
    image.style.maxHeight = '100%';
    document.getElementById(divid).appendChild(image);
-   // document.body.appendChild(image);
-   createZoom(id);
+   createZoom(divid);
 
    window.addEventListener('load', function() {
-      imageZoom(id);
-      createControls(id);
+      imageZoom(divid);
+      createControls(divid);
    });
 }
 
+/**
+ * This function will create the lens that move with the cursor
+ *
+ * @param masterID -- The ID of the main element
+ * @returns {HTMLDivElement} -- Return the lens if needed
+ */
 function createLens(masterID) {
    const lens = document.createElement('div');
    lens.id = masterID + 'Lens';
@@ -36,10 +51,18 @@ function createLens(masterID) {
    style.height = '40px';
    style.display = 'none';
 
+   //Append the child into the master DIV
+   //DIV[masterID].appendChild(lens); TODO: This should work but then need to redo all the maths of positions
    document.body.appendChild(lens);
    return lens;
 }
 
+/**
+ * This function will create the zoomed area
+ *
+ * @param masterID -- The ID of the main element
+ * @returns {HTMLDivElement} -- Return the zoomed area if needed
+ */
 function createZoom(masterID) {
    const zoom = document.createElement('div');
    zoom.id = masterID + 'Zoom';
@@ -52,52 +75,54 @@ function createZoom(masterID) {
    style.position = 'absolute';
    style.transition = 'top .3s, left .3s';
 
+   //Append the child into the master DIV
+   // DIV[masterID].appendChild(zoom); TODO: This should work but then need to redo all the maths of positions
    document.body.appendChild(zoom);
    return zoom;
 }
 
+/**
+ * This function create the controls for the script.
+ * For now only the zoom is created, but this is here if you wan to add others option like rotate controls
+ * There is no return because the controls are not only one
+ *
+ * @param masterID -- The ID of the main element
+ */
 function createControls(masterID) {
-   const image = document.getElementById(masterID);
-   const imagePosition = image.getBoundingClientRect();
    const controls = document.createElement('div');
    controls.id = masterID + 'Controls';
-   controls.style.position = 'absolute';
-   document.body.appendChild(controls);
+
+   //Append the child into the master DIV
+   DIV[masterID].appendChild(controls);
 
    const zoomButton = document.createElement("button");
    zoomButton.id = masterID + 'ZoomButton';
    zoomButton.textContent = 'Zoom';
-   zoomButton.addEventListener('click', () => {
-      IS_ZOOM = !IS_ZOOM;
 
-      if(IS_ZOOM) {
+   // Listener to enable/disable the zoom
+   zoomButton.addEventListener('click', () => {
+      IS_ZOOM[masterID] = !IS_ZOOM[masterID];
+
+      if(IS_ZOOM[masterID]) {
          document.getElementById(masterID+ 'Zoom').style.display = 'none';
          document.getElementById(masterID+ 'Lens').style.display = 'none';
       }
    });
 
+   // Append the button to the controls div which is appended into the master DIV
    controls.appendChild(zoomButton);
-
-   controls.style.top = (imagePosition.y + imagePosition.height - controls.getBoundingClientRect().height - 5) + 'px';
-   controls.style.left = (imagePosition.x + 5) + 'px';
 }
 
-
-function makeID(length) {
-   let result = '';
-   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-   const charactersLength = characters.length;
-   for ( let i = 0; i < length; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-   }
-   return result;
-}
-
-
-function imageZoom(imgID) {
-   const img = document.getElementById(imgID);
-   const zoom = document.getElementById(imgID + 'Zoom');
-   const lens = document.getElementById(imgID + 'Lens');
+/**
+ * Main function of the script
+ * This mainly add the events listeners to the created components
+ *
+ * @param masterID -- The ID of the main element
+ */
+function imageZoom(masterID) {
+   const img = document.getElementById(masterID + 'Image');
+   const zoom = document.getElementById(masterID + 'Zoom');
+   const lens = document.getElementById(masterID + 'Lens');
 
    let cursorOnPicture = false;
    let cursorOnLens = false;
@@ -106,7 +131,7 @@ function imageZoom(imgID) {
 
 
    img.addEventListener('mouseenter', () => {
-      if(IS_ZOOM) {
+      if(IS_ZOOM[masterID]) {
 
          cursorOnPicture = true;
 
@@ -126,7 +151,7 @@ function imageZoom(imgID) {
 
    lens.addEventListener('mouseleave', () => {
 
-      if(IS_ZOOM) {
+      if(IS_ZOOM[masterID]) {
 
          cursorOnLens = false;
 
@@ -142,12 +167,16 @@ function imageZoom(imgID) {
    // Events listeners
    lens.addEventListener("mousemove", moveLens);
    img.addEventListener("mousemove", moveLens);
-
    lens.addEventListener('wheel', zoomFactor);
 
+   /**
+    * This function move the lens with your cursor
+    *
+    * @param e -- The mouse event
+    */
    function moveLens(e) {
 
-      if(IS_ZOOM) {
+      if(IS_ZOOM[masterID]) {
 
          if(e) {
             e.preventDefault();
@@ -160,6 +189,9 @@ function imageZoom(imgID) {
          let scrolledY = window.scrollY;
          let posZoomX;
          let posZoomY;
+
+         let ImageTopLeftX = imagePosition.left;
+         let ImageTopLeftY = imagePosition.top;
 
          moveZoom(e);
 
@@ -205,9 +237,14 @@ function imageZoom(imgID) {
       }
    }
 
+   /**
+    * This function change the position of the Zoom result not to block the view
+    *
+    * @param e -- The mouse event
+    */
    function moveZoom(e) {
 
-      if(IS_ZOOM) {
+      if(IS_ZOOM[masterID]) {
 
          //Set of the zoom place
          const scrolledY = window.scrollY;
@@ -235,11 +272,16 @@ function imageZoom(imgID) {
       }
    }
 
+   /**
+    * This function will change the size of the lens, and change the background position of the zoom result
+    *
+    * @param e -- The scroll wheel event
+    */
    function zoomFactor(e) {
       e.preventDefault();
       e.stopImmediatePropagation();
 
-      if(IS_ZOOM) {
+      if(IS_ZOOM[masterID]) {
 
          imagePosition = img.getBoundingClientRect();
          const height = Number(lens.style.height.slice(0, -2));
