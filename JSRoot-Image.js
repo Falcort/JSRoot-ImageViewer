@@ -50,6 +50,7 @@ function createLens(masterID) {
    style.width = '40px';
    style.height = '40px';
    style.display = 'none';
+   style.cursor = 'move';
 
    //Append the child into the master DIV
    //DIV[masterID].appendChild(lens); TODO: This should work but then need to redo all the maths of positions
@@ -102,6 +103,7 @@ function createControls(masterID) {
    zoomSVG.style.margin = 10 + 'px';
    zoomSVG.style.objectFit ='contain';
    zoomSVG.style.width = '16px';
+   zoomSVG.style.cursor = 'pointer';
    zoomSVG.style.height = '16px';
    zoomSVG.style.opacity = '0.3';
    zoomSVG.style.fill = 'steelblue';
@@ -140,6 +142,7 @@ function createControls(masterID) {
    zoomMinus.style.margin = 10 + 'px';
    zoomMinus.style.objectFit ='contain';
    zoomMinus.style.width = '16px';
+   zoomMinus.style.cursor = 'pointer';
    zoomMinus.style.height = '16px';
    zoomMinus.style.opacity = '0.3';
    zoomMinus.style.fill = 'steelblue';
@@ -166,6 +169,7 @@ function createControls(masterID) {
    zoomPlus.style.margin = 10 + 'px';
    zoomPlus.style.objectFit ='contain';
    zoomPlus.style.width = '16px';
+   zoomPlus.style.cursor = 'pointer';
    zoomPlus.style.height = '16px';
    zoomPlus.style.opacity = '0.3';
    zoomPlus.style.fill = 'steelblue';
