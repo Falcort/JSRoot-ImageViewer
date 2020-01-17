@@ -3,6 +3,7 @@ const ZOOM_BORDER_SIZE = 1; // The border size of the resulted zoom area
 const LENGTH_MIN_SIZE = 20; // The min size of the lens
 const ZOOM_FACTOR = 7; // This value is the biggest value of the length or width divided by this, in order to always have a % of the picture for the result zoom size
 const ZOOM_LENGTH_FACTOR = 5; // At which speed the lens will grow on scrolling, each scroll event it will be this var bigger (in pixels)
+const ZOOM_SIZE = {};
 
 const DIV = {}; // The main div, initialized at first !
 const IS_ZOOM = {}; // If the zoom is enabled for the picture;
@@ -159,6 +160,7 @@ function createControls(masterID) {
       let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
 
       zoomLength -= 10;
+      ZOOM_SIZE[masterID] -= 10;
 
       zoom.style.width = zoomLength + 'px';
       zoom.style.height = zoomLength + 'px';
@@ -193,6 +195,7 @@ function createControls(masterID) {
       let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
 
       zoomLength += 10;
+      ZOOM_SIZE[masterID] += 10;
 
       zoom.style.width = zoomLength + 'px';
       zoom.style.height = zoomLength + 'px';
@@ -300,7 +303,10 @@ function imageZoom(masterID) {
 
          //Set of the zoom place
          const scrolledY = window.scrollY;
-         const length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
+         let length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
+         if(ZOOM_SIZE[masterID] !== undefined) {
+            length += ZOOM_SIZE[masterID];
+         }
          zoom.style.height = length + 'px';
          zoom.style.width = length + 'px';
 
@@ -358,6 +364,14 @@ function imageZoom(masterID) {
          }
          if(resultHeight < LENGTH_MIN_SIZE) {
             resultHeight = LENGTH_MIN_SIZE;
+         }
+
+         // Max the zoom factor to zoom result size
+         if(resultWidth > zoom.offsetWidth - ZOOM_BORDER_SIZE*2) {
+            resultWidth = zoom.offsetWidth
+         }
+         if(resultHeight > zoom.offsetHeight - ZOOM_BORDER_SIZE*2) {
+            resultHeight = zoom.offsetHeight
          }
 
          // Prevent zooming bigger than the picture
