@@ -96,17 +96,37 @@ function createControls(masterID) {
    //Append the child into the master DIV
    DIV[masterID].appendChild(controls);
 
-   const zoomButton = document.createElement("button");
-   zoomButton.id = masterID + 'ZoomButton';
-   zoomButton.textContent = 'Zoom';
+   //Zoom SVG
+   let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+   svg.setAttributeNS(null, 'viewBox', '0 0 15.99 16');
+   svg.style.objectFit ='contain';
+   svg.style.width = '16px';
+   svg.style.height = '16px';
+   svg.style.opacity = '0.3';
+   svg.style.fill = 'steelblue';
+   svg.id = masterID + 'ZoomButton';
+   controls.appendChild(svg);
+
+   let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+   path.setAttributeNS(null, 'd','M15.5,13.12L13.19,10.8a1.69,1.69,0,0,0-1.28-.55l-0.06-.06A6.5,6.5,0,0,0,5.77,0,6.5,6.5,0,0,0,2.46,11.59a6.47,6.47,0,0,0,7.74.26l0.05,0.05a1.65,1.65,0,0,0,.5,1.24l2.38,2.38A1.68,1.68,0,0,0,15.5,13.12ZM6.4,2A4.41,4.41,0,1,1,2,6.4,4.43,4.43,0,0,1,6.4,2Z');
+   path.setAttributeNS(null, 'transforrm','translate(-.01)');
+   path.setAttributeNS(null, 'x','0');
+   path.setAttributeNS(null, 'y','0');
+   path.setAttributeNS(null, 'height','14');
+   path.setAttributeNS(null, 'width','14');
+   svg.appendChild(path);
 
    // Listener to enable/disable the zoom
-   zoomButton.addEventListener('click', () => {
+   svg.addEventListener('click', () => {
       IS_ZOOM[masterID] = !IS_ZOOM[masterID];
 
       if(IS_ZOOM[masterID]) {
          document.getElementById(masterID+ 'Zoom').style.display = 'none';
          document.getElementById(masterID+ 'Lens').style.display = 'none';
+
+         svg.style.opacity = '1';
+      } else {
+         svg.style.opacity = '0.3';
       }
    });
 
