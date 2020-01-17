@@ -97,15 +97,16 @@ function createControls(masterID) {
    DIV[masterID].appendChild(controls);
 
    //Zoom SVG
-   let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-   svg.setAttributeNS(null, 'viewBox', '0 0 15.99 16');
-   svg.style.objectFit ='contain';
-   svg.style.width = '16px';
-   svg.style.height = '16px';
-   svg.style.opacity = '0.3';
-   svg.style.fill = 'steelblue';
-   svg.id = masterID + 'ZoomButton';
-   controls.appendChild(svg);
+   let zoomSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+   zoomSVG.setAttributeNS(null, 'viewBox', '0 0 15.99 16');
+   zoomSVG.style.margin = 10 + 'px';
+   zoomSVG.style.objectFit ='contain';
+   zoomSVG.style.width = '16px';
+   zoomSVG.style.height = '16px';
+   zoomSVG.style.opacity = '0.3';
+   zoomSVG.style.fill = 'steelblue';
+   zoomSVG.id = masterID + 'ZoomButton';
+   controls.appendChild(zoomSVG);
 
    let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
    path.setAttributeNS(null, 'd','M15.5,13.12L13.19,10.8a1.69,1.69,0,0,0-1.28-.55l-0.06-.06A6.5,6.5,0,0,0,5.77,0,6.5,6.5,0,0,0,2.46,11.59a6.47,6.47,0,0,0,7.74.26l0.05,0.05a1.65,1.65,0,0,0,.5,1.24l2.38,2.38A1.68,1.68,0,0,0,15.5,13.12ZM6.4,2A4.41,4.41,0,1,1,2,6.4,4.43,4.43,0,0,1,6.4,2Z');
@@ -114,24 +115,87 @@ function createControls(masterID) {
    path.setAttributeNS(null, 'y','0');
    path.setAttributeNS(null, 'height','14');
    path.setAttributeNS(null, 'width','14');
-   svg.appendChild(path);
+   zoomSVG.appendChild(path);
+   controls.appendChild(zoomSVG);
 
    // Listener to enable/disable the zoom
-   svg.addEventListener('click', () => {
+   zoomSVG.addEventListener('click', () => {
       IS_ZOOM[masterID] = !IS_ZOOM[masterID];
 
       if(IS_ZOOM[masterID]) {
+         document.getElementById(masterID+ 'Zoom').style.display = 'inline-block';
+         document.getElementById(masterID+ 'Lens').style.display = 'initial';
+
+         zoomSVG.style.opacity = '1';
+      } else {
          document.getElementById(masterID+ 'Zoom').style.display = 'none';
          document.getElementById(masterID+ 'Lens').style.display = 'none';
 
-         svg.style.opacity = '1';
-      } else {
-         svg.style.opacity = '0.3';
+         zoomSVG.style.opacity = '0.3';
       }
    });
 
+   let zoomMinus = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+   zoomMinus.setAttributeNS(null, 'viewBox', '0 0 170 35');
+   zoomMinus.style.margin = 10 + 'px';
+   zoomMinus.style.objectFit ='contain';
+   zoomMinus.style.width = '16px';
+   zoomMinus.style.height = '16px';
+   zoomMinus.style.opacity = '0.3';
+   zoomMinus.style.fill = 'steelblue';
+   zoomMinus.id = masterID + 'ZoomMinusButton';
+   controls.appendChild(zoomMinus);
+
+   let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+   rect.setAttributeNS(null, 'width', 170);
+   rect.setAttributeNS(null, 'height', 35);
+   zoomMinus.append(rect);
+
+   zoomMinus.addEventListener('click', () => {
+      const zoom = document.getElementById(masterID + 'Zoom');
+      let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
+
+      zoomLength -= 10;
+
+      zoom.style.width = zoomLength + 'px';
+      zoom.style.height = zoomLength + 'px';
+   });
+
+   let zoomPlus = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+   zoomPlus.setAttributeNS(null, 'viewBox', '0 0 170 35');
+   zoomPlus.style.margin = 10 + 'px';
+   zoomPlus.style.objectFit ='contain';
+   zoomPlus.style.width = '16px';
+   zoomPlus.style.height = '16px';
+   zoomPlus.style.opacity = '0.3';
+   zoomPlus.style.fill = 'steelblue';
+   zoomPlus.id = masterID + 'ZoomPlusButton';
+   controls.appendChild(zoomPlus);
+
+   rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+   rect.setAttributeNS(null, 'width', 170);
+   rect.setAttributeNS(null, 'height', 35);
+   zoomPlus.append(rect);
+
+   rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+   rect.setAttributeNS(null, 'width', '170');
+   rect.setAttributeNS(null, 'height', 35);
+   rect.setAttributeNS(null, 'transform', 'translate(105 -60) rotate(90)');
+   zoomPlus.append(rect);
+
+   zoomPlus.addEventListener('click', () => {
+      console.log('HERE');
+      const zoom = document.getElementById(masterID + 'Zoom');
+      let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
+
+      zoomLength += 10;
+
+      zoom.style.width = zoomLength + 'px';
+      zoom.style.height = zoomLength + 'px';
+
+   });
+
    // Append the button to the controls div which is appended into the master DIV
-   controls.appendChild(zoomButton);
 }
 
 /**
@@ -145,45 +209,8 @@ function imageZoom(masterID) {
    const zoom = document.getElementById(masterID + 'Zoom');
    const lens = document.getElementById(masterID + 'Lens');
 
-   let cursorOnPicture = false;
-   let cursorOnLens = false;
-
    zoom.style.backgroundImage = "url('" + img.src + "')";
 
-
-   img.addEventListener('mouseenter', () => {
-      if(IS_ZOOM[masterID]) {
-
-         cursorOnPicture = true;
-
-         zoom.style.display = 'inline-block';
-         lens.style.display = 'initial';
-
-      }
-   });
-
-   img.addEventListener('mouseleave', () => {
-      cursorOnPicture = false;
-   });
-
-   lens.addEventListener('mouseenter', () => {
-      cursorOnLens = true;
-   });
-
-   lens.addEventListener('mouseleave', () => {
-
-      if(IS_ZOOM[masterID]) {
-
-         cursorOnLens = false;
-
-         if(!(cursorOnLens && cursorOnPicture)) {
-            zoom.style.display = 'none';
-            lens.style.display = 'none';
-         }
-
-      }
-
-   });
 
    // Events listeners
    lens.addEventListener("mousemove", moveLens);
