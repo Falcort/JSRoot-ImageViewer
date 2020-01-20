@@ -48,8 +48,6 @@ function createLens(masterID) {
    style.position = 'absolute';
    style.border = `${LENS_BORDER_SIZE}px solid rgb(0, 126, 255)`;
    style.backgroundColor = 'rgba(0, 126, 255, .2)';
-   style.width = '40px';
-   style.height = '40px';
    style.display = 'none';
    style.cursor = 'move';
 
@@ -245,9 +243,6 @@ function imageZoom(masterID) {
          let posZoomX;
          let posZoomY;
 
-         let ImageTopLeftX = imagePosition.left;
-         let ImageTopLeftY = imagePosition.top;
-
          moveZoom(e);
 
          // length of the zoom divided by the length od the lens
@@ -307,8 +302,15 @@ function imageZoom(masterID) {
          if(ZOOM_SIZE[masterID] !== undefined) {
             length += ZOOM_SIZE[masterID];
          }
+
          zoom.style.height = length + 'px';
          zoom.style.width = length + 'px';
+
+         //Set the size of the lens at the size of the zoom on first start
+         if(lens.style.height === '' && lens.style.width === '') {
+            lens.style.height = length + 'px';
+            lens.style.width = length + 'px';
+         }
 
          if(e && e.screenX !== undefined) {
 
@@ -373,6 +375,7 @@ function imageZoom(masterID) {
          if(resultHeight > zoom.offsetHeight - ZOOM_BORDER_SIZE*2) {
             resultHeight = zoom.offsetHeight
          }
+
 
          // Prevent zooming bigger than the picture
          if(resultHeight > img.offsetHeight - LENS_BORDER_SIZE*2) {
