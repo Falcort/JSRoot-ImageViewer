@@ -202,12 +202,12 @@ function createControls(masterID) {
       let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
 
       zoomLength += 10;
-      ZOOM_SIZE[masterID] += 10;
       if(zoomLength >= img.width) {
          zoomLength = img.width;
-      }
-      if(zoomLength >= img.height) {
+      } else if(zoomLength >= img.height) {
          zoomLength = img.height;
+      } else {
+         ZOOM_SIZE[masterID] += 10;
       }
 
       zoom.style.width = zoomLength + 'px';
