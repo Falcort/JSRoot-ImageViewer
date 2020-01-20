@@ -155,10 +155,18 @@ function createControls(masterID) {
 
    zoomMinus.addEventListener('click', () => {
       const zoom = document.getElementById(masterID + 'Zoom');
+      const img = document.getElementById(masterID + 'Image');
+      const length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
       let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
 
+
       zoomLength -= 10;
-      ZOOM_SIZE[masterID] -= 10;
+      if(zoomLength <= length) {
+         zoomLength = length;
+         ZOOM_SIZE[masterID] = 0;
+      } else {
+         ZOOM_SIZE[masterID] -= 10;
+      }
 
       zoom.style.width = zoomLength + 'px';
       zoom.style.height = zoomLength + 'px';
@@ -190,10 +198,17 @@ function createControls(masterID) {
    zoomPlus.addEventListener('click', () => {
       console.log('HERE');
       const zoom = document.getElementById(masterID + 'Zoom');
+      const img = document.getElementById(masterID + 'Image');
       let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
 
       zoomLength += 10;
       ZOOM_SIZE[masterID] += 10;
+      if(zoomLength >= img.width) {
+         zoomLength = img.width;
+      }
+      if(zoomLength >= img.height) {
+         zoomLength = img.height;
+      }
 
       zoom.style.width = zoomLength + 'px';
       zoom.style.height = zoomLength + 'px';
