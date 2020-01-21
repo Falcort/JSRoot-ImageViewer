@@ -73,12 +73,13 @@ function createZoom(masterID) {
    style.display = 'inline-block';
    style.backgroundRepeat = 'no-repeat';
    style.position = 'absolute';
-   style.transition = 'top .3s, left .3s';
+   // style.transition = 'top .3s, left .3s';
    style.background = 'white';
 
    //Append the child into the master DIV
    // DIV[masterID].appendChild(zoom); TODO: This should work but then need to redo all the maths of positions
    document.body.appendChild(zoom);
+   dragElement(zoom);
    return zoom;
 }
 
@@ -196,7 +197,6 @@ function createControls(masterID) {
    zoomPlus.append(rect);
 
    zoomPlus.addEventListener('click', () => {
-      console.log('HERE');
       const zoom = document.getElementById(masterID + 'Zoom');
       const img = document.getElementById(masterID + 'Image');
       let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
@@ -269,8 +269,6 @@ function imageZoom(masterID) {
          let posZoomX;
          let posZoomY;
 
-         // moveZoom(e);
-
          // length of the zoom divided by the length od the lens
          let cx = zoom.offsetWidth / lens.offsetWidth;
          let cy = zoom.offsetHeight / lens.offsetHeight;
@@ -309,51 +307,6 @@ function imageZoom(masterID) {
          }
 
          zoom.style.backgroundPosition = `-${(posZoomX - imagePosition.x - scrolledX) * cx}px -${(posZoomY - imagePosition.y - scrolledY) * cy }px`;
-
-      }
-   }
-
-   /**
-    * This function change the position of the Zoom result not to block the view
-    *
-    * @param e -- The mouse event
-    */
-   function moveZoom(e) {
-
-      if(IS_ZOOM[masterID]) {
-
-         //Set of the zoom place
-         const scrolledY = window.scrollY;
-         let length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
-         if(ZOOM_SIZE[masterID] !== undefined) {
-            length += ZOOM_SIZE[masterID];
-         }
-
-         zoom.style.height = length + 'px';
-         zoom.style.width = length + 'px';
-
-         //Set the size of the lens at the size of the zoom on first start
-         if(lens.style.height === '' && lens.style.width === '') {
-            lens.style.height = length + 'px';
-            lens.style.width = length + 'px';
-         }
-
-         if(e && e.screenX !== undefined) {
-
-            //Left or Right
-            if(e.clientX >= imagePosition.x && e.clientX <= imagePosition.x + imagePosition.width/2) {
-               zoom.style.left = (img.offsetWidth - length + imagePosition.x - ZOOM_BORDER_SIZE*2) + 'px';
-            } else {
-               zoom.style.left = imagePosition.x + 'px';
-            }
-
-            // Top or Bottom
-            if(e.clientY >= imagePosition.y && e.clientY <= imagePosition.y + imagePosition.height/2) {
-               zoom.style.top = imagePosition.bottom - length + scrolledY + 'px';
-            } else {
-               zoom.style.top = imagePosition.y + scrolledY + 'px';
-            }
-         }
 
       }
    }
@@ -423,5 +376,41 @@ function imageZoom(masterID) {
          moveLens();
 
       }
+   }
+}
+
+function dragElement(elem) {
+   var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+   elem.addEventListener('mousedown', dragMouseDown);
+
+
+   function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+   }
+
+   function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // calculate the new cursor position:
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // set the element's new position:
+      elem.style.top = (elem.offsetTop - pos2) + "px";
+      elem.style.left = (elem.offsetLeft - pos1) + "px";
+   }
+
+   function closeDragElement() {
+      /* stop moving when mouse button is released:*/
+      document.onmouseup = null;
+      document.onmousemove = null;
    }
 }
