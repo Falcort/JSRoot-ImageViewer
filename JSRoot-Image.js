@@ -17,8 +17,8 @@ const IS_ZOOM = {}; // If the zoom is enabled for the picture;
  */
 function drawImage(src, divid) {
    DIV[divid] = document.getElementById(divid);
+   DIV[divid].style.display = 'inline-block';
    IS_ZOOM[divid] = false;
-   createLens(divid);
    const image = document.createElement("img");
    image.id = divid + 'Image';
    image.src = src;
@@ -26,9 +26,10 @@ function drawImage(src, divid) {
    image.style.maxHeight = '100%';
    document.getElementById(divid).appendChild(image);
    createZoom(divid);
+   createLens(divid);
 
    window.addEventListener('load', function() {
-      imageZoom(divid);
+      initialize(divid);
       createControls(divid);
    });
 }
@@ -50,9 +51,10 @@ function createLens(masterID) {
    style.display = 'none';
    style.cursor = 'move';
 
-   //Append the child into the master DIV
-   //DIV[masterID].appendChild(lens); TODO: This should work but then need to redo all the maths of positions
-   document.body.appendChild(lens);
+   DIV[masterID].appendChild(lens);
+   dragElement(lens);
+   resizeableElement(lens);
+
    return lens;
 }
 
@@ -76,10 +78,10 @@ function createZoom(masterID) {
    style.cursor = 'move';
    style.display = 'none';
 
-   //Append the child into the master DIV
-   // DIV[masterID].appendChild(zoom); TODO: This should work but then need to redo all the maths of positions
-   document.body.appendChild(zoom);
+   DIV[masterID].appendChild(zoom);
    dragElement(zoom);
+   resizeableElement(zoom);
+
    return zoom;
 }
 
@@ -92,52 +94,58 @@ function createZoom(masterID) {
  */
 function createControls(masterID) {
    const controls = document.createElement('div');
+   controls.style.textAlign = 'initial';
    controls.id = masterID + 'Controls';
 
    //Append the child into the master DIV
    DIV[masterID].appendChild(controls);
-
-   //Zoom SVG
-   let zoomSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-   zoomSVG.setAttributeNS(null, 'viewBox', '0 0 15.99 16');
-   zoomSVG.style.margin = 10 + 'px';
-   zoomSVG.style.objectFit ='contain';
-   zoomSVG.style.width = '16px';
-   zoomSVG.style.cursor = 'pointer';
-   zoomSVG.style.height = '16px';
-   zoomSVG.style.opacity = '0.3';
-   zoomSVG.style.fill = 'steelblue';
-   zoomSVG.id = masterID + 'ZoomButton';
-   controls.appendChild(zoomSVG);
-
-   let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-   path.setAttributeNS(null, 'd','M15.5,13.12L13.19,10.8a1.69,1.69,0,0,0-1.28-.55l-0.06-.06A6.5,6.5,0,0,0,5.77,0,6.5,6.5,0,0,0,2.46,11.59a6.47,6.47,0,0,0,7.74.26l0.05,0.05a1.65,1.65,0,0,0,.5,1.24l2.38,2.38A1.68,1.68,0,0,0,15.5,13.12ZM6.4,2A4.41,4.41,0,1,1,2,6.4,4.43,4.43,0,0,1,6.4,2Z');
-   path.setAttributeNS(null, 'transforrm','translate(-.01)');
-   path.setAttributeNS(null, 'x','0');
-   path.setAttributeNS(null, 'y','0');
-   path.setAttributeNS(null, 'height','14');
-   path.setAttributeNS(null, 'width','14');
-   zoomSVG.appendChild(path);
-   controls.appendChild(zoomSVG);
+   const lensButton = createLensButton();
+   //Append the SVG button into controls
+   controls.appendChild(lensButton);
 
    // Listener to enable/disable the zoom
-   zoomSVG.addEventListener('click', () => {
+   lensButton.addEventListener('click', toggleZoom);
+
+   function createLensButton() {
+      const zoomSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      zoomSVG.setAttributeNS(null, 'viewBox', '0 0 15.99 16');
+      zoomSVG.style.marginTop = 10 + 'px';
+      zoomSVG.style.objectFit ='contain';
+      zoomSVG.style.width = '16px';
+      zoomSVG.style.cursor = 'pointer';
+      zoomSVG.style.height = '16px';
+      zoomSVG.style.opacity = '0.3';
+      zoomSVG.style.fill = 'steelblue';
+      zoomSVG.id = masterID + 'ZoomButton';
+      controls.appendChild(zoomSVG);
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttributeNS(null, 'd','M15.5,13.12L13.19,10.8a1.69,1.69,0,0,0-1.28-.55l-0.06-.06A6.5,6.5,0,0,0,5.77,0,6.5,6.5,0,0,0,2.46,11.59a6.47,6.47,0,0,0,7.74.26l0.05,0.05a1.65,1.65,0,0,0,.5,1.24l2.38,2.38A1.68,1.68,0,0,0,15.5,13.12ZM6.4,2A4.41,4.41,0,1,1,2,6.4,4.43,4.43,0,0,1,6.4,2Z');
+      path.setAttributeNS(null, 'transforrm','translate(-.01)');
+      path.setAttributeNS(null, 'x','0');
+      path.setAttributeNS(null, 'y','0');
+      path.setAttributeNS(null, 'height','14');
+      path.setAttributeNS(null, 'width','14');
+      zoomSVG.appendChild(path);
+
+      return zoomSVG;
+   }
+   
+   function toggleZoom() {
       IS_ZOOM[masterID] = !IS_ZOOM[masterID];
 
       if(IS_ZOOM[masterID]) {
          document.getElementById(masterID+ 'Zoom').style.display = 'inline-block';
          document.getElementById(masterID+ 'Lens').style.display = 'initial';
 
-         zoomSVG.style.opacity = '1';
+         lensButton.style.opacity = '1';
       } else {
          document.getElementById(masterID+ 'Zoom').style.display = 'none';
          document.getElementById(masterID+ 'Lens').style.display = 'none';
 
-         zoomSVG.style.opacity = '0.3';
+         lensButton.style.opacity = '0.3';
       }
-   });
-
-   // Append the button to the controls div which is appended into the master DIV
+   }
 }
 
 /**
@@ -146,228 +154,102 @@ function createControls(masterID) {
  *
  * @param masterID -- The ID of the main element
  */
-function imageZoom(masterID) {
+function initialize(masterID) {
    const img = document.getElementById(masterID + 'Image');
-   const zoom = document.getElementById(masterID + 'Zoom');
-   const lens = document.getElementById(masterID + 'Lens');
-
    let imgPosition = img.getBoundingClientRect();
    let size =  Math.max(imgPosition.width, imgPosition.height)/ZOOM_LENGTH_FACTOR - ZOOM_BORDER_SIZE;
-   zoom.style.backgroundImage = "url('" + img.src + "')";
-   zoom.style.left = imgPosition.x + window.scrollX + 'px';
-   zoom.style.top = imgPosition.y + window.scrollY + 'px';
-   zoom.style.height = size + 'px';
-   zoom.style.width = size + 'px';
 
-   lens.style.left = imgPosition.x + window.scrollX + 'px';
-   lens.style.top = imgPosition.y + window.scrollY + 'px';
-   lens.style.width = size + 'px';
-   lens.style.height = size + 'px';
+   setStartPosForLens();
+   setStartPosForZoom();
 
+   function setStartPosForZoom() {
+      const zoom = document.getElementById(masterID + 'Zoom');
 
-   // Events listeners
-   lens.addEventListener("mousemove", moveLens);
-   img.addEventListener("mousemove", moveLens);
-   lens.addEventListener('wheel', zoomFactor);
-   zoom.addEventListener('wheel', zoomSize);
-
-   /**
-    * This function move the lens with your cursor
-    *
-    * @param e -- The mouse event
-    */
-   function moveLens(e) {
-
-      if(IS_ZOOM[masterID]) {
-
-         if(e) {
-            e.preventDefault();
-            cursorX = e.clientX;
-            cursorY = e.clientY;
-         }
-
-         imagePosition = img.getBoundingClientRect();
-         let scrolledX = window.scrollX;
-         let scrolledY = window.scrollY;
-         let posZoomX;
-         let posZoomY;
-
-         // length of the zoom divided by the length od the lens
-         let cx = zoom.offsetWidth / lens.offsetWidth;
-         let cy = zoom.offsetHeight / lens.offsetHeight;
-
-         // 7.19 * 500 = 3595
-         // Image size multiplied bya the offset
-         zoom.style.backgroundSize = (img.width * cx) + "px " + (img.height * cy) + "px";
-
-         //MOVE OF THE LENS
-         lens.style.top = (cursorY  + scrolledY - (lens.offsetHeight/2)) + 'px';
-         lens.style.left = (cursorX - scrolledX - (lens.offsetWidth/2)) + 'px';
-         posZoomY = cursorY  + scrolledY - (lens.offsetHeight/2);
-         posZoomX = cursorX - scrolledX - (lens.offsetWidth/2);
-
-         //If cursor is on the left
-         if(cursorX - (lens.offsetWidth/2) < imagePosition.left) {
-            lens.style.left = imagePosition.left + 'px';
-            posZoomX = imagePosition.left;
-         }
-         // If cursor is on right
-         if (cursorX + (lens.offsetWidth/2) > imagePosition.right) {
-            lens.style.left = (imagePosition.right - lens.offsetWidth) + 'px';
-            posZoomX = imagePosition.right - lens.offsetWidth;
-         }
-
-         // If cursor is on the top
-         if (cursorY - (lens.offsetHeight/2) < imagePosition.top) {
-            lens.style.top = (imagePosition.top + scrolledY ) + 'px';
-            posZoomY = imagePosition.top + scrolledY;
-         }
-
-         // If cursor is on bottom
-         if(cursorY + (lens.offsetHeight/2) > imagePosition.bottom) {
-            lens.style.top = (imagePosition.bottom + scrolledY - lens.offsetHeight) + 'px';
-            posZoomY = imagePosition.bottom + scrolledY - lens.offsetHeight;
-         }
-
-         zoom.style.backgroundPosition = `-${(posZoomX - imagePosition.x - scrolledX) * cx}px -${(posZoomY - imagePosition.y - scrolledY) * cy }px`;
-
-      }
+      zoom.style.backgroundImage = "url('" + img.src + "')";
+      zoom.style.left = imgPosition.x + window.scrollX + 'px';
+      zoom.style.top = imgPosition.y + window.scrollY + 'px';
+      zoom.style.height = size + 'px';
+      zoom.style.width = size + 'px';
    }
 
-   /**
-    * This function will change the size of the lens, and change the background position of the zoom result
-    *
-    * @param e -- The scroll wheel event
-    */
-   function zoomFactor(e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
+   function setStartPosForLens() {
+      const lens = document.getElementById(masterID + 'Lens');
 
-      if(IS_ZOOM[masterID]) {
-
-         imagePosition = img.getBoundingClientRect();
-         const height = Number(lens.style.height.slice(0, -2));
-         const width = Number(lens.style.width.slice(0, -2));
-
-         let resultWidth;
-         let resultHeight;
-
-         //Zoom direction
-         if(e.deltaY > 0) {
-            resultWidth = (width - ZOOM_FACTOR);
-            resultHeight = (height - ZOOM_FACTOR);
-         }
-         if(e.deltaY < 0) {
-            resultWidth = (width + ZOOM_FACTOR);
-            resultHeight = (height + ZOOM_FACTOR);
-         }
-
-         // Force minimum size
-         if(resultWidth < LENGTH_MIN_SIZE) {
-            resultWidth = LENGTH_MIN_SIZE;
-         }
-         if(resultHeight < LENGTH_MIN_SIZE) {
-            resultHeight = LENGTH_MIN_SIZE;
-         }
-
-         // Max the zoom factor to zoom result size
-         if(resultWidth > zoom.offsetWidth - ZOOM_BORDER_SIZE*2) {
-            resultWidth = zoom.offsetWidth - ZOOM_BORDER_SIZE*2
-         }
-         if(resultHeight > zoom.offsetHeight - ZOOM_BORDER_SIZE*2) {
-            resultHeight = zoom.offsetHeight - ZOOM_BORDER_SIZE*2
-         }
-
-
-         // Prevent zooming bigger than the picture
-         if(resultHeight > img.offsetHeight - LENS_BORDER_SIZE*2) {
-            resultHeight = (img.offsetHeight - LENS_BORDER_SIZE*2);
-
-            //Keep the lens square
-            resultWidth = (img.offsetHeight - LENS_BORDER_SIZE*2);
-         }
-         if(resultWidth > img.offsetWidth - LENS_BORDER_SIZE*2) {
-            resultWidth = (img.offsetWidth - LENS_BORDER_SIZE*2);
-
-            //Kep the lens square
-            resultHeight = (img.offsetWidth - LENS_BORDER_SIZE*2);
-         }
-
-         lens.style.width = resultWidth + 'px';
-         lens.style.height = resultHeight + 'px';
-
-         moveLens();
-
-      }
-   }
-
-   /**
-    * This function change the size of the zoom
-    *
-    * @param e -- The scroll wheel event
-    */
-   function zoomSize(e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-
-      if(IS_ZOOM[masterID]) {
-
-         const height = Number(zoom.style.height.slice(0, -2));
-         const width = Number(zoom.style.width.slice(0, -2));
-
-         let resultWidth;
-         let resultHeight;
-
-         //Zoom direction
-         if(e.deltaY > 0) {
-            resultWidth = (width - ZOOM_FACTOR);
-            resultHeight = (height - ZOOM_FACTOR);
-         }
-         if(e.deltaY < 0) {
-            resultWidth = (width + ZOOM_FACTOR);
-            resultHeight = (height + ZOOM_FACTOR);
-         }
-
-         zoom.style.height = resultHeight + 'px';
-         zoom.style.width = resultWidth + 'px';
-
-         moveLens();
-      }
+      lens.style.left = imgPosition.x + window.scrollX + 'px';
+      lens.style.top = imgPosition.y + window.scrollY + 'px';
+      lens.style.width = size + 'px';
+      lens.style.height = size + 'px';
    }
 }
 
 function dragElement(elem) {
-   var movePosX = 0, movePosY = 0, clickPosX = 0, clickPosY = 0;
-   elem.addEventListener('mousedown', dragMouseDown);
+   let movePosX = 0;
+   let movePosY = 0;
+   let clickPosX = 0;
+   let clickPosY = 0;
 
+   elem.addEventListener('mousedown', startDrag);
 
-   function dragMouseDown(e) {
-      e = e || window.event;
+   function startDrag(e) {
       e.preventDefault();
-      // get the mouse cursor position at startup:
+
+      //Set the start click position
       clickPosX = e.clientX;
       clickPosY = e.clientY;
-      document.onmouseup = closeDragElement;
-      // call a function whenever the cursor moves:
-      document.onmousemove = elementDrag;
+
+      // Attach the drag events
+      document.onmouseup = endDrag;
+      document.onmousemove = drag;
    }
 
-   function elementDrag(e) {
-      e = e || window.event;
+   function drag(e) {
       e.preventDefault();
-      // calculate the new cursor position:
+
+      // Change cursor position to the new one
       movePosX = clickPosX - e.clientX;
       movePosY = clickPosY - e.clientY;
+
+      // Reset the click position for next event
       clickPosX = e.clientX;
       clickPosY = e.clientY;
-      // set the element's new position:
+
+      // Move the element
       elem.style.top = (elem.offsetTop - movePosY) + "px";
       elem.style.left = (elem.offsetLeft - movePosX) + "px";
    }
 
-   function closeDragElement() {
-      /* stop moving when mouse button is released:*/
+   function endDrag() {
+
+      //Remove the events bindings
       document.onmouseup = null;
       document.onmousemove = null;
+   }
+}
+
+function resizeableElement(elem) {
+   elem.addEventListener('wheel', zoom);
+
+   function zoom(e) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      const height = Number(elem.style.height.slice(0, -2));
+      const width = Number(elem.style.width.slice(0, -2));
+
+      let resultWidth;
+      let resultHeight;
+
+      //Zoom direction
+      if(e.deltaY > 0) {
+         resultWidth = (width - ZOOM_FACTOR);
+         resultHeight = (height - ZOOM_FACTOR);
+      }
+      if(e.deltaY < 0) {
+         resultWidth = (width + ZOOM_FACTOR);
+         resultHeight = (height + ZOOM_FACTOR);
+      }
+
+      elem.style.height = resultHeight + 'px';
+      elem.style.width = resultWidth + 'px';
    }
 }
