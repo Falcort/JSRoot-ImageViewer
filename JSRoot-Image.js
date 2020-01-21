@@ -1,9 +1,8 @@
 const LENS_BORDER_SIZE = 1; // The border size of the lens that move with the cursor
-const ZOOM_BORDER_SIZE = 1; // The border size of the resulted zoom area
+const ZOOM_BORDER_SIZE = 2; // The border size of the resulted zoom area
 const LENGTH_MIN_SIZE = 20; // The min size of the lens
 const ZOOM_FACTOR = 7; // This value is the biggest value of the length or width divided by this, in order to always have a % of the picture for the result zoom size
 const ZOOM_LENGTH_FACTOR = 5; // At which speed the lens will grow on scrolling, each scroll event it will be this var bigger (in pixels)
-const ZOOM_SIZE = {};
 
 const DIV = {}; // The main div, initialized at first !
 const IS_ZOOM = {}; // If the zoom is enabled for the picture;
@@ -69,12 +68,12 @@ function createZoom(masterID) {
 
    const style = zoom.style;
 
-   style.border = `${ZOOM_BORDER_SIZE}px solid #f1f1f1`;
+   style.border = `${ZOOM_BORDER_SIZE}px solid black`;
    style.display = 'inline-block';
    style.backgroundRepeat = 'no-repeat';
    style.position = 'absolute';
-   // style.transition = 'top .3s, left .3s';
    style.background = 'white';
+   style.cursor = 'move';
    style.display = 'none';
 
    //Append the child into the master DIV
@@ -138,84 +137,6 @@ function createControls(masterID) {
       }
    });
 
-   let zoomMinus = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-   zoomMinus.setAttributeNS(null, 'viewBox', '0 0 170 35');
-   zoomMinus.style.margin = 10 + 'px';
-   zoomMinus.style.objectFit ='contain';
-   zoomMinus.style.width = '16px';
-   zoomMinus.style.cursor = 'pointer';
-   zoomMinus.style.height = '16px';
-   zoomMinus.style.opacity = '0.3';
-   zoomMinus.style.fill = 'steelblue';
-   zoomMinus.id = masterID + 'ZoomMinusButton';
-   controls.appendChild(zoomMinus);
-
-   let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-   rect.setAttributeNS(null, 'width', 170);
-   rect.setAttributeNS(null, 'height', 35);
-   zoomMinus.append(rect);
-
-   zoomMinus.addEventListener('click', () => {
-      const zoom = document.getElementById(masterID + 'Zoom');
-      const img = document.getElementById(masterID + 'Image');
-      const length = Math.max(img.width, img.height)/ZOOM_LENGTH_FACTOR;
-      let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
-
-
-      zoomLength -= 10;
-      if(zoomLength <= length) {
-         zoomLength = length;
-         ZOOM_SIZE[masterID] = 0;
-      } else {
-         ZOOM_SIZE[masterID] -= 10;
-      }
-
-      zoom.style.width = zoomLength + 'px';
-      zoom.style.height = zoomLength + 'px';
-   });
-
-   let zoomPlus = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-   zoomPlus.setAttributeNS(null, 'viewBox', '0 0 170 35');
-   zoomPlus.style.margin = 10 + 'px';
-   zoomPlus.style.objectFit ='contain';
-   zoomPlus.style.width = '16px';
-   zoomPlus.style.cursor = 'pointer';
-   zoomPlus.style.height = '16px';
-   zoomPlus.style.opacity = '0.3';
-   zoomPlus.style.fill = 'steelblue';
-   zoomPlus.id = masterID + 'ZoomPlusButton';
-   controls.appendChild(zoomPlus);
-
-   rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-   rect.setAttributeNS(null, 'width', 170);
-   rect.setAttributeNS(null, 'height', 35);
-   zoomPlus.append(rect);
-
-   rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-   rect.setAttributeNS(null, 'width', '170');
-   rect.setAttributeNS(null, 'height', 35);
-   rect.setAttributeNS(null, 'transform', 'translate(105 -60) rotate(90)');
-   zoomPlus.append(rect);
-
-   zoomPlus.addEventListener('click', () => {
-      const zoom = document.getElementById(masterID + 'Zoom');
-      const img = document.getElementById(masterID + 'Image');
-      let zoomLength = zoom.offsetWidth - ZOOM_BORDER_SIZE*2;
-
-      zoomLength += 10;
-      if(zoomLength >= img.width) {
-         zoomLength = img.width;
-      } else if(zoomLength >= img.height) {
-         zoomLength = img.height;
-      } else {
-         ZOOM_SIZE[masterID] += 10;
-      }
-
-      zoom.style.width = zoomLength + 'px';
-      zoom.style.height = zoomLength + 'px';
-
-   });
-
    // Append the button to the controls div which is appended into the master DIV
 }
 
@@ -248,6 +169,7 @@ function imageZoom(masterID) {
    lens.addEventListener("mousemove", moveLens);
    img.addEventListener("mousemove", moveLens);
    lens.addEventListener('wheel', zoomFactor);
+   zoom.addEventListener('wheel', zoomSize);
 
    /**
     * This function move the lens with your cursor
@@ -378,10 +300,44 @@ function imageZoom(masterID) {
 
       }
    }
+
+   /**
+    * This function change the size of the zoom
+    *
+    * @param e -- The scroll wheel event
+    */
+   function zoomSize(e) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      if(IS_ZOOM[masterID]) {
+
+         const height = Number(zoom.style.height.slice(0, -2));
+         const width = Number(zoom.style.width.slice(0, -2));
+
+         let resultWidth;
+         let resultHeight;
+
+         //Zoom direction
+         if(e.deltaY > 0) {
+            resultWidth = (width - ZOOM_FACTOR);
+            resultHeight = (height - ZOOM_FACTOR);
+         }
+         if(e.deltaY < 0) {
+            resultWidth = (width + ZOOM_FACTOR);
+            resultHeight = (height + ZOOM_FACTOR);
+         }
+
+         zoom.style.height = resultHeight + 'px';
+         zoom.style.width = resultWidth + 'px';
+
+         moveLens();
+      }
+   }
 }
 
 function dragElement(elem) {
-   var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+   var movePosX = 0, movePosY = 0, clickPosX = 0, clickPosY = 0;
    elem.addEventListener('mousedown', dragMouseDown);
 
 
@@ -389,8 +345,8 @@ function dragElement(elem) {
       e = e || window.event;
       e.preventDefault();
       // get the mouse cursor position at startup:
-      pos3 = e.clientX;
-      pos4 = e.clientY;
+      clickPosX = e.clientX;
+      clickPosY = e.clientY;
       document.onmouseup = closeDragElement;
       // call a function whenever the cursor moves:
       document.onmousemove = elementDrag;
@@ -400,13 +356,13 @@ function dragElement(elem) {
       e = e || window.event;
       e.preventDefault();
       // calculate the new cursor position:
-      pos1 = pos3 - e.clientX;
-      pos2 = pos4 - e.clientY;
-      pos3 = e.clientX;
-      pos4 = e.clientY;
+      movePosX = clickPosX - e.clientX;
+      movePosY = clickPosY - e.clientY;
+      clickPosX = e.clientX;
+      clickPosY = e.clientY;
       // set the element's new position:
-      elem.style.top = (elem.offsetTop - pos2) + "px";
-      elem.style.left = (elem.offsetLeft - pos1) + "px";
+      elem.style.top = (elem.offsetTop - movePosY) + "px";
+      elem.style.left = (elem.offsetLeft - movePosX) + "px";
    }
 
    function closeDragElement() {
