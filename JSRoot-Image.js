@@ -229,7 +229,18 @@ function imageZoom(masterID) {
    const zoom = document.getElementById(masterID + 'Zoom');
    const lens = document.getElementById(masterID + 'Lens');
 
+   let imgPosition = img.getBoundingClientRect();
+   let size =  Math.max(imgPosition.width, imgPosition.height)/ZOOM_LENGTH_FACTOR - ZOOM_BORDER_SIZE;
    zoom.style.backgroundImage = "url('" + img.src + "')";
+   zoom.style.left = imgPosition.x + window.scrollX + 'px';
+   zoom.style.top = imgPosition.y + window.scrollY + 'px';
+   zoom.style.height = size + 'px';
+   zoom.style.width = size + 'px';
+
+   lens.style.left = imgPosition.x + window.scrollX + 'px';
+   lens.style.top = imgPosition.y + window.scrollY + 'px';
+   lens.style.width = size + 'px';
+   lens.style.height = size + 'px';
 
 
    // Events listeners
@@ -258,7 +269,7 @@ function imageZoom(masterID) {
          let posZoomX;
          let posZoomY;
 
-         moveZoom(e);
+         // moveZoom(e);
 
          // length of the zoom divided by the length od the lens
          let cx = zoom.offsetWidth / lens.offsetWidth;
@@ -385,10 +396,10 @@ function imageZoom(masterID) {
 
          // Max the zoom factor to zoom result size
          if(resultWidth > zoom.offsetWidth - ZOOM_BORDER_SIZE*2) {
-            resultWidth = zoom.offsetWidth
+            resultWidth = zoom.offsetWidth - ZOOM_BORDER_SIZE*2
          }
          if(resultHeight > zoom.offsetHeight - ZOOM_BORDER_SIZE*2) {
-            resultHeight = zoom.offsetHeight
+            resultHeight = zoom.offsetHeight - ZOOM_BORDER_SIZE*2
          }
 
 
