@@ -75,6 +75,7 @@ function createZoom(masterID) {
    style.position = 'absolute';
    // style.transition = 'top .3s, left .3s';
    style.background = 'white';
+   style.display = 'none';
 
    //Append the child into the master DIV
    // DIV[masterID].appendChild(zoom); TODO: This should work but then need to redo all the maths of positions
