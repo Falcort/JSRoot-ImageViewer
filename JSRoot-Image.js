@@ -230,6 +230,26 @@ function dragElement(masterID, elem) {
          if(lensPos.right > imgPos.right) {
             elem.style.left = imgPos.right - lensPos.width + 'px';
          }
+      } else {
+
+         // Prevent from moving outside the top
+         if(elem.getBoundingClientRect().top < 0) {
+            elem.style.top = 0 + 'px';
+         }
+
+         //Prevent to overflow on left
+         if(elem.getBoundingClientRect().left < 0) {
+            elem.style.left = 0 + 'px';
+         }
+
+         //Prevent overflow on right
+         if(elem.getBoundingClientRect().right > window.innerWidth) {
+            elem.style.left = elem.getBoundingClientRect().left - (elem.getBoundingClientRect().right - window.innerWidth) + 'px';
+         }
+
+         if(elem.getBoundingClientRect().bottom > window.innerHeight) {
+            elem.style.top = elem.getBoundingClientRect().top - (elem.getBoundingClientRect().bottom - window.innerHeight) + 'px';
+         }
       }
 
       update(e, masterID);
