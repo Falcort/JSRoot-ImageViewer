@@ -307,14 +307,12 @@ function resizeableElement(masterID, elem) {
       else {
          // Height too big
          if(resultHeight > window.innerHeight) {
-            console.log('HERE');
             resultHeight = window.innerHeight;
             resultWidth = window.innerHeight * (imgPos.width/imgPos.height);
          }
 
          // Width too big
          if(resultWidth > window.innerWidth) {
-            console.log('HERE2');
             resultWidth = window.innerWidth;
             resultHeight = window.innerWidth * (imgPos.height/imgPos.width);
          }
