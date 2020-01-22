@@ -304,6 +304,21 @@ function resizeableElement(masterID, elem) {
             resultWidth = imgPos.width;
          }
       }
+      else {
+         // Height too big
+         if(resultHeight > window.innerHeight) {
+            console.log('HERE');
+            resultHeight = window.innerHeight;
+            resultWidth = window.innerHeight * (imgPos.width/imgPos.height);
+         }
+
+         // Width too big
+         if(resultWidth > window.innerWidth) {
+            console.log('HERE2');
+            resultWidth = window.innerWidth;
+            resultHeight = window.innerWidth * (imgPos.height/imgPos.width);
+         }
+      }
 
       elem.style.height = resultHeight + 'px';
       elem.style.width = resultWidth + 'px';
@@ -337,8 +352,17 @@ function update(e, masterID) {
       lens.style.left = lens.getBoundingClientRect().left - (lens.getBoundingClientRect().right - imagePosition.right) + 'px';
    }
 
+   // Stop the zoom resize to go outside picture (bottom)
+   if(zoom.getBoundingClientRect().bottom > window.innerHeight) {
+      zoom.style.top = zoom.getBoundingClientRect().top - (zoom.getBoundingClientRect().bottom - window.innerHeight) + 'px';
+   }
+
+   // Stop the zoom resize to go outside picture (right)
+   if(zoom.getBoundingClientRect().right > window.innerWidth) {
+      zoom.style.left = zoom.getBoundingClientRect().left - (zoom.getBoundingClientRect().right - window.innerWidth) + 'px';
+   }
+
 }
 
 // TODO: While zooming move element so cursor always stay inside
 // TODO: bug lens max size, if moved then zoomed area moved too, not possible because of max size
-// TODO: Prevent from zooming outside the windows
