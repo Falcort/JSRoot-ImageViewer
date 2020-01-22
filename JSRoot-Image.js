@@ -52,8 +52,8 @@ function createLens(masterID) {
    style.cursor = 'move';
 
    DIV[masterID].appendChild(lens);
-   dragElement(lens);
-   resizeableElement(lens);
+   dragElement(masterID, lens);
+   // resizeableElement(masterID, lens);
 
    return lens;
 }
@@ -79,8 +79,8 @@ function createZoom(masterID) {
    style.display = 'none';
 
    DIV[masterID].appendChild(zoom);
-   dragElement(zoom);
-   resizeableElement(zoom);
+   dragElement(masterID, zoom);
+   // resizeableElement(masterID, zoom);
 
    return zoom;
 }
@@ -182,7 +182,7 @@ function initialize(masterID) {
    }
 }
 
-function dragElement(elem) {
+function dragElement(masterID, elem) {
    let movePosX = 0;
    let movePosY = 0;
    let clickPosX = 0;
@@ -213,9 +213,37 @@ function dragElement(elem) {
       clickPosX = e.clientX;
       clickPosY = e.clientY;
 
-      // Move the element
       elem.style.top = (elem.offsetTop - movePosY) + "px";
       elem.style.left = (elem.offsetLeft - movePosX) + "px";
+
+      if(elem.id.endsWith('Lens')) {
+         const lens = elem;
+         const img = document.getElementById(masterID + 'Image');
+         const lensPos = lens.getBoundingClientRect();
+         const imgPos = img.getBoundingClientRect();
+         console.log('');
+         console.log('lensPos.top', lensPos.top);
+         console.log('imgPos.top', imgPos.top);
+
+         // Top
+         if(lensPos.top < imgPos.top) {
+            elem.style.top = imgPos.top + "px";
+         }
+         // Bottom
+         if(lensPos.bottom > imgPos.bottom) {
+            elem.style.top = imgPos.bottom - lensPos.height + "px";
+         }
+
+         // Left
+         if(lensPos.left < imgPos.left) {
+            elem.style.left = imgPos.left + 'px';
+         }
+         if(lensPos.right > imgPos.right) {
+            elem.style.left = imgPos.right - lensPos.width + 'px';
+         }
+      }
+
+      update(e, masterID);
    }
 
    function endDrag() {
@@ -226,7 +254,7 @@ function dragElement(elem) {
    }
 }
 
-function resizeableElement(elem) {
+function resizeableElement(masterID, elem) {
    elem.addEventListener('wheel', zoom);
 
    function zoom(e) {
@@ -249,7 +277,32 @@ function resizeableElement(elem) {
          resultHeight = (height + ZOOM_FACTOR);
       }
 
+      if(resultHeight < 10) {
+         resultHeight = 10;
+      }
+      if(resultWidth < 10) {
+         resultWidth = 10;
+      }
+
       elem.style.height = resultHeight + 'px';
       elem.style.width = resultWidth + 'px';
+
+      update(e, masterID);
    }
+}
+
+function update(e, masterID) {
+   const zoom = document.getElementById(masterID + 'Zoom');
+   const img = document.getElementById(masterID + 'Image');
+   const lens = document.getElementById(masterID + 'Lens');
+   const imagePosition = img.getBoundingClientRect();
+
+   let cx = zoom.offsetWidth / lens.offsetWidth;
+   let cy = zoom.offsetHeight / lens.offsetHeight;
+
+   posZoomY = lens.getBoundingClientRect().y - imagePosition.y + LENS_BORDER_SIZE * 2;
+   posZoomX = lens.getBoundingClientRect().x - imagePosition.x + LENS_BORDER_SIZE * 2;
+
+   zoom.style.backgroundSize = (imagePosition.width * cx) + "px " + (imagePosition.height * cy) + "px";
+   zoom.style.backgroundPosition = `-${posZoomX * cx}px -${posZoomY * cy}px`;
 }
