@@ -1,12 +1,7 @@
 const LENS_BORDER_SIZE = 1; // The border size of the lens that move with the cursor
 const ZOOM_BORDER_SIZE = 2; // The border size of the resulted zoom area
-const LENGTH_MIN_SIZE = 20; // The min size of the lens
-const ZOOM_FACTOR = 7; // This value is the biggest value of the length or width divided by this, in order to always have a % of the picture for the result zoom size
-const ZOOM_LENGTH_FACTOR = 5; // At which speed the lens will grow on scrolling, each scroll event it will be this var bigger (in pixels)
-
 const DIV = {}; // The main div, initialized at first !
 const IS_ZOOM = {}; // If the zoom is enabled for the picture;
-
 
 /**
  * Main function of the script
@@ -53,7 +48,7 @@ function createLens(masterID) {
 
    DIV[masterID].appendChild(lens);
    dragElement(masterID, lens);
-   // resizeableElement(masterID, lens);
+   resizeableElement(masterID, lens);
 
    return lens;
 }
@@ -80,7 +75,7 @@ function createZoom(masterID) {
 
    DIV[masterID].appendChild(zoom);
    dragElement(masterID, zoom);
-   // resizeableElement(masterID, zoom);
+   resizeableElement(masterID, zoom);
 
    return zoom;
 }
@@ -148,16 +143,12 @@ function createControls(masterID) {
    }
 }
 
-/**
- * Main function of the script
- * This mainly add the events listeners to the created components
- *
- * @param masterID -- The ID of the main element
- */
 function initialize(masterID) {
    const img = document.getElementById(masterID + 'Image');
    let imgPosition = img.getBoundingClientRect();
-   let size =  Math.max(imgPosition.width, imgPosition.height)/ZOOM_LENGTH_FACTOR - ZOOM_BORDER_SIZE;
+   img.style.height = Math.round(imgPosition.height) + 'px';
+   img.style.width = Math.round(imgPosition.width) + 'px';
+   imgPosition = img.getBoundingClientRect();
 
    setStartPosForLens();
    setStartPosForZoom();
@@ -168,8 +159,8 @@ function initialize(masterID) {
       zoom.style.backgroundImage = "url('" + img.src + "')";
       zoom.style.left = imgPosition.x + window.scrollX + 'px';
       zoom.style.top = imgPosition.y + window.scrollY + 'px';
-      zoom.style.height = size + 'px';
-      zoom.style.width = size + 'px';
+      zoom.style.height = Math.round(imgPosition.height/10) + 'px';
+      zoom.style.width = Math.round(imgPosition.width/10) + 'px';
    }
 
    function setStartPosForLens() {
@@ -177,8 +168,8 @@ function initialize(masterID) {
 
       lens.style.left = imgPosition.x + window.scrollX + 'px';
       lens.style.top = imgPosition.y + window.scrollY + 'px';
-      lens.style.width = size + 'px';
-      lens.style.height = size + 'px';
+      lens.style.height = Math.round(imgPosition.height/10) + 'px';
+      lens.style.width = Math.round(imgPosition.width/10) + 'px';
    }
 }
 
@@ -221,9 +212,6 @@ function dragElement(masterID, elem) {
          const img = document.getElementById(masterID + 'Image');
          const lensPos = lens.getBoundingClientRect();
          const imgPos = img.getBoundingClientRect();
-         console.log('');
-         console.log('lensPos.top', lensPos.top);
-         console.log('imgPos.top', imgPos.top);
 
          // Top
          if(lensPos.top < imgPos.top) {
@@ -238,6 +226,7 @@ function dragElement(masterID, elem) {
          if(lensPos.left < imgPos.left) {
             elem.style.left = imgPos.left + 'px';
          }
+         // Right
          if(lensPos.right > imgPos.right) {
             elem.style.left = imgPos.right - lensPos.width + 'px';
          }
@@ -261,27 +250,39 @@ function resizeableElement(masterID, elem) {
       e.preventDefault();
       e.stopImmediatePropagation();
 
+      const imgPos = document.getElementById(masterID+ 'Image').getBoundingClientRect();
       const height = Number(elem.style.height.slice(0, -2));
       const width = Number(elem.style.width.slice(0, -2));
 
       let resultWidth;
       let resultHeight;
 
-      //Zoom direction
-      if(e.deltaY > 0) {
-         resultWidth = (width - ZOOM_FACTOR);
-         resultHeight = (height - ZOOM_FACTOR);
-      }
-      if(e.deltaY < 0) {
-         resultWidth = (width + ZOOM_FACTOR);
-         resultHeight = (height + ZOOM_FACTOR);
+      const coef = (width - e.deltaY)/width;
+      resultHeight = height * coef;
+      resultWidth = width * coef;
+
+
+      // Width too small
+      if(imgPos.width/10 > resultWidth) {
+         resultWidth = imgPos.width/10;
       }
 
-      if(resultHeight < 10) {
-         resultHeight = 10;
+      // Height too small
+      if(imgPos.height/10 > resultHeight) {
+         resultHeight = imgPos.height/10
       }
-      if(resultWidth < 10) {
-         resultWidth = 10;
+
+      if(elem.id.endsWith('Lens')) {
+
+         // Height too big
+         if(resultHeight > imgPos.height) {
+            resultHeight = imgPos.height;
+         }
+
+         // Width too big
+         if(resultWidth > imgPos.width) {
+            resultWidth = imgPos.width;
+         }
       }
 
       elem.style.height = resultHeight + 'px';
@@ -305,4 +306,19 @@ function update(e, masterID) {
 
    zoom.style.backgroundSize = (imagePosition.width * cx) + "px " + (imagePosition.height * cy) + "px";
    zoom.style.backgroundPosition = `-${posZoomX * cx}px -${posZoomY * cy}px`;
+
+   // Stop the zoom resize to go outside picture (bottom)
+   if(lens.getBoundingClientRect().bottom > imagePosition.bottom) {
+      lens.style.top = lens.getBoundingClientRect().top - (lens.getBoundingClientRect().bottom - imagePosition.bottom) + 'px';
+   }
+
+   // Stop the zoom resize to go outside picture (right)
+   if(lens.getBoundingClientRect().right > imagePosition.right) {
+      lens.style.left = lens.getBoundingClientRect().left - (lens.getBoundingClientRect().right - imagePosition.right) + 'px';
+   }
+
 }
+
+// TODO: While zooming move element so cursor always stay inside
+// TODO: bug lens max size, if moved then zoomed area moved too, not possible because of max size
+// TODO: Prevent from zooming outside the windows
