@@ -163,9 +163,6 @@ function initialize(masterID) {
       zoom.style.top = 0 + 'px';
       zoom.style.height = Math.round(imgPosition.height/10) + 'px';
       zoom.style.width = Math.round(imgPosition.width/10) + 'px';
-
-      console.log(imgPosition.x, zoom.style.left);
-      console.log(imgPosition.y, zoom.style.top);
    }
 
    function setStartPosForLens() {
@@ -329,20 +326,20 @@ function update(e, masterID) {
     */
    // Stop the zoom resize to go outside picture (top)
    if(zoom.getBoundingClientRect().top < 0) {
-      zoom.style.top = window.scrollY + 'px';
+      zoom.style.top = -imagePosition.top + 'px';
    }
    // Stop the zoom resize to go outside picture (bottom)
    if(zoom.getBoundingClientRect().bottom > window.innerHeight) {
-      zoom.style.top = zoom.getBoundingClientRect().top - (zoom.getBoundingClientRect().bottom - window.innerHeight) + window.scrollY + 'px';
+      zoom.style.top = window.innerHeight - imagePosition.top - lens.getBoundingClientRect().height +  'px';
    }
 
    // Stop the zoom resize to go outside picture (right)
    if(zoom.getBoundingClientRect().right > window.innerWidth) {
-      zoom.style.left = zoom.getBoundingClientRect().left - (zoom.getBoundingClientRect().right - window.innerWidth) + window.scrollX + 'px';
+      zoom.style.left = window.innerWidth - imagePosition.left - lens.getBoundingClientRect().width + 'px';
    }
    // Stop the zoom resize to go outside picture (left)
    if(zoom.getBoundingClientRect().left < 0) {
-      zoom.style.left = window.scrollX + 'px';
+      zoom.style.left = -imagePosition.left + 'px';
    }
 
    posZoomY = lens.getBoundingClientRect().y - imagePosition.y + LENS_BORDER_SIZE * 2;
