@@ -2,6 +2,7 @@ const LENS_BORDER_SIZE = 1; // The border size of the lens that move with the cu
 const ZOOM_BORDER_SIZE = 2; // The border size of the resulted zoom area
 const DIV = {}; // The main div, initialized at first !
 const IS_ZOOM = {}; // If the zoom is enabled for the picture;
+const ZOOM_SPEED = 10; // Number of pixels added each mouse scroll
 
 /**
  * Main function of the script
@@ -236,10 +237,15 @@ function resizeableElement(masterID, elem) {
       let resultWidth;
       let resultHeight;
 
-      const coef = (width - e.deltaY)/width;
+      let coef;
+      if(e.deltaY > 0) {
+         coef = (width - ZOOM_SPEED)/width;
+      } else {
+         coef = (width + ZOOM_SPEED)/width;
+      }
+      
       resultHeight = height * coef;
       resultWidth = width * coef;
-
 
       // Width too small
       if(imgPos.width/10 > resultWidth) {
@@ -344,5 +350,4 @@ function update(e, masterID) {
 }
 
 // TODO: While zooming move element so cursor always stay inside
-// TODO: wiggle if triging to moove the lens outside the picture
-// TODO: verify calculation with border
+// TODO: verify calculation with border (bugged min zoom on right to see)
