@@ -47,6 +47,7 @@ function createLens(masterID) {
    style.backgroundColor = 'rgba(0, 126, 255, .2)';
    style.display = 'none';
    style.cursor = 'move';
+   style.zIndex = '10';
 
    DIV[masterID].appendChild(lens);
    setDragDropAble(masterID, lens);
@@ -74,6 +75,7 @@ function createZoom(masterID) {
    style.background = 'white';
    style.cursor = 'move';
    style.display = 'none';
+   style.zIndex = '9';
 
    DIV[masterID].appendChild(zoom);
    setDragDropAble(masterID, zoom);
@@ -324,15 +326,16 @@ function update(masterID) {
    const img = document.getElementById(masterID + 'Image');
    const lens = document.getElementById(masterID + 'Lens');
    const imagePosition = img.getBoundingClientRect();
+   lens.style.zIndex = '8';
 
-   let cx = zoom.offsetWidth / lens.offsetWidth;
-   let cy = zoom.offsetHeight / lens.offsetHeight;
+   let cx = (zoom.offsetWidth - (ZOOM_BORDER_SIZE * 2)) / (lens.offsetWidth - (LENS_BORDER_SIZE * 2));
+   let cy = (zoom.offsetHeight - (ZOOM_BORDER_SIZE * 2)) / (lens.offsetHeight - (LENS_BORDER_SIZE * 2));
 
    updateLens();
    updateZoom();
 
-   posZoomY = lens.getBoundingClientRect().y - imagePosition.y + LENS_BORDER_SIZE * 2;
-   posZoomX = lens.getBoundingClientRect().x - imagePosition.x + LENS_BORDER_SIZE * 2;
+   posZoomY = lens.getBoundingClientRect().y - imagePosition.y + LENS_BORDER_SIZE;
+   posZoomX = lens.getBoundingClientRect().x - imagePosition.x + LENS_BORDER_SIZE;
 
    // Update the zoom itself
    zoom.style.backgroundSize = (imagePosition.width * cx) + "px " + (imagePosition.height * cy) + "px";
