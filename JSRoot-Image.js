@@ -49,7 +49,7 @@ function createLens(masterID) {
    style.cursor = 'move';
 
    DIV[masterID].appendChild(lens);
-   dragElement(masterID, lens);
+   setDragDropAble(masterID, lens);
    resizeableElement(masterID, lens);
 
    return lens;
@@ -76,7 +76,7 @@ function createZoom(masterID) {
    style.display = 'none';
 
    DIV[masterID].appendChild(zoom);
-   dragElement(masterID, zoom);
+   setDragDropAble(masterID, zoom);
    resizeableElement(masterID, zoom);
 
    return zoom;
@@ -145,6 +145,11 @@ function createControls(masterID) {
    }
 }
 
+/**
+ * This function initialise the elements so they can work
+ *
+ * @param masterID -- The ID of the main element
+ */
 function initialize(masterID) {
    const img = document.getElementById(masterID + 'Image');
    let imgPosition = img.getBoundingClientRect();
@@ -152,10 +157,11 @@ function initialize(masterID) {
    img.style.width = Math.round(imgPosition.width) + 'px';
    imgPosition = img.getBoundingClientRect();
 
-   setStartPosForLens();
-   setStartPosForZoom();
+   initLens();
+   initZoom();
 
-   function setStartPosForZoom() {
+   // Start position and size of the zoom
+   function initZoom() {
       const zoom = document.getElementById(masterID + 'Zoom');
 
       zoom.style.backgroundImage = "url('" + img.src + "')";
@@ -165,7 +171,8 @@ function initialize(masterID) {
       zoom.style.width = Math.round(imgPosition.width/10) + 'px';
    }
 
-   function setStartPosForLens() {
+   // Start position and size of the lens
+   function initLens() {
       const lens = document.getElementById(masterID + 'Lens');
 
       lens.style.left = 0 + 'px';
@@ -175,7 +182,13 @@ function initialize(masterID) {
    }
 }
 
-function dragElement(masterID, elem) {
+/**
+ * Collection of cuntions to make element drag & drop able
+ *
+ * @param masterID -- The ID of the main element
+ * @param elem -- The element to drag & drop
+ */
+function setDragDropAble(masterID, elem) {
    let movePosX = 0;
    let movePosY = 0;
    let clickPosX = 0;
@@ -183,6 +196,7 @@ function dragElement(masterID, elem) {
 
    elem.addEventListener('mousedown', startDrag);
 
+   // Function that is call when dragging
    function startDrag(e) {
       e.preventDefault();
 
@@ -195,12 +209,9 @@ function dragElement(masterID, elem) {
       document.onmousemove = drag;
    }
 
+   // Function during the drag
    function drag(e) {
       e.preventDefault();
-      const lens = document.getElementById(masterID + 'Lens');
-      const img = document.getElementById(masterID + 'Image');
-      const lensPos = lens.getBoundingClientRect();
-      const imgPos = img.getBoundingClientRect();
 
       // Change cursor position to the new one
       movePosX = clickPosX - e.clientX;
@@ -213,9 +224,10 @@ function dragElement(masterID, elem) {
       elem.style.top = (elem.offsetTop - movePosY) + "px";
       elem.style.left = (elem.offsetLeft - movePosX) + "px";
 
-      update(e, masterID);
+      update(masterID);
    }
 
+   // Function that start when dropped
    function endDrag() {
 
       //Remove the events bindings
@@ -224,9 +236,20 @@ function dragElement(masterID, elem) {
    }
 }
 
+/**
+ * Main function of the element resizing
+ *
+ * @param masterID -- The ID of the main element
+ * @param elem -- The element to resize
+ */
 function resizeableElement(masterID, elem) {
    elem.addEventListener('wheel', zoom);
 
+   /**
+    * Function that allow you the change the size  an element
+    *
+    * @param e -- The scroll wheel event
+    */
    function zoom(e) {
       e.preventDefault();
       e.stopImmediatePropagation();
@@ -287,11 +310,16 @@ function resizeableElement(masterID, elem) {
       elem.style.height = resultHeight + 'px';
       elem.style.width = resultWidth + 'px';
 
-      update(e, masterID);
+      update(masterID);
    }
 }
 
-function update(e, masterID) {
+/**
+ * This function update he positions of the elements and the zoom
+ *
+ * @param masterID -- The ID of the main element
+ */
+function update(masterID) {
    const zoom = document.getElementById(masterID + 'Zoom');
    const img = document.getElementById(masterID + 'Image');
    const lens = document.getElementById(masterID + 'Lens');
@@ -300,54 +328,61 @@ function update(e, masterID) {
    let cx = zoom.offsetWidth / lens.offsetWidth;
    let cy = zoom.offsetHeight / lens.offsetHeight;
 
-   /**
-    * Lens
-    */
-   // Stop the lens resize to go outside picture (top)
-   if(lens.getBoundingClientRect().top < imagePosition.top) {
-      lens.style.top = 0 + 'px';
-   }
-   // Stop the lens resize to go outside picture (bottom)
-   if(lens.getBoundingClientRect().bottom > imagePosition.bottom) {
-      lens.style.top = imagePosition.height - lens.getBoundingClientRect().height + 'px';
-   }
-
-   // Stop the lens resize to go outside picture (right)
-   if(lens.getBoundingClientRect().right > imagePosition.right) {
-      lens.style.left = imagePosition.width - lens.getBoundingClientRect().width + 'px';
-   }
-   // Stop the lens resize to go outside picture (right)
-   if(lens.getBoundingClientRect().left < imagePosition.left) {
-      lens.style.left = 0 + 'px';
-   }
-
-   /**
-    * Zoom
-    */
-   // Stop the zoom resize to go outside picture (top)
-   if(zoom.getBoundingClientRect().top < 0) {
-      zoom.style.top = -imagePosition.top + 'px';
-   }
-   // Stop the zoom resize to go outside picture (bottom)
-   if(zoom.getBoundingClientRect().bottom > window.innerHeight) {
-      zoom.style.top = window.innerHeight - imagePosition.top - zoom.getBoundingClientRect().height +  'px';
-   }
-
-   // Stop the zoom resize to go outside picture (right)
-   if(zoom.getBoundingClientRect().right > window.innerWidth) {
-      zoom.style.left = window.innerWidth - zoom.getBoundingClientRect().width - imagePosition.left + 'px';
-   }
-   // Stop the zoom resize to go outside picture (left)
-   if(zoom.getBoundingClientRect().left < 0) {
-      zoom.style.left = -imagePosition.left + 'px';
-   }
+   updateLens();
+   updateZoom();
 
    posZoomY = lens.getBoundingClientRect().y - imagePosition.y + LENS_BORDER_SIZE * 2;
    posZoomX = lens.getBoundingClientRect().x - imagePosition.x + LENS_BORDER_SIZE * 2;
 
+   // Update the zoom itself
    zoom.style.backgroundSize = (imagePosition.width * cx) + "px " + (imagePosition.height * cy) + "px";
    zoom.style.backgroundPosition = `-${posZoomX * cx}px -${posZoomY * cy}px`;
 
+   /**
+    * Update the position of the lens so it cannot move outside the picture
+    */
+   function updateLens() {
+      // Stop the lens resize to go outside picture (top)
+      if(lens.getBoundingClientRect().top < imagePosition.top) {
+         lens.style.top = 0 + 'px';
+      }
+      // Stop the lens resize to go outside picture (bottom)
+      if(lens.getBoundingClientRect().bottom > imagePosition.bottom) {
+         lens.style.top = imagePosition.height - lens.getBoundingClientRect().height + 'px';
+      }
+
+      // Stop the lens resize to go outside picture (right)
+      if(lens.getBoundingClientRect().right > imagePosition.right) {
+         lens.style.left = imagePosition.width - lens.getBoundingClientRect().width + 'px';
+      }
+      // Stop the lens resize to go outside picture (right)
+      if(lens.getBoundingClientRect().left < imagePosition.left) {
+         lens.style.left = 0 + 'px';
+      }
+   }
+
+   /**
+    * Update the position of the zoom so it cannot move outside the window
+    */
+   function updateZoom() {
+      // Stop the zoom resize to go outside picture (top)
+      if(zoom.getBoundingClientRect().top < 0) {
+         zoom.style.top = -imagePosition.top + 'px';
+      }
+      // Stop the zoom resize to go outside picture (bottom)
+      if(zoom.getBoundingClientRect().bottom > window.innerHeight) {
+         zoom.style.top = window.innerHeight - imagePosition.top - zoom.getBoundingClientRect().height +  'px';
+      }
+
+      // Stop the zoom resize to go outside picture (right)
+      if(zoom.getBoundingClientRect().right > window.innerWidth) {
+         zoom.style.left = window.innerWidth - zoom.getBoundingClientRect().width - imagePosition.left + 'px';
+      }
+      // Stop the zoom resize to go outside picture (left)
+      if(zoom.getBoundingClientRect().left < 0) {
+         zoom.style.left = -imagePosition.left + 'px';
+      }
+   }
 }
 
 // TODO: While zooming move element so cursor always stay inside
