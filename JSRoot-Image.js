@@ -243,7 +243,7 @@ function resizeableElement(masterID, elem) {
       } else {
          coef = (width + ZOOM_SPEED)/width;
       }
-      
+
       resultHeight = height * coef;
       resultWidth = width * coef;
 
