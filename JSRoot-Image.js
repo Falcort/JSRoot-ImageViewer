@@ -14,6 +14,7 @@ const ZOOM_SPEED = 10; // Number of pixels added each mouse scroll
 function drawImage(src, divid) {
    DIV[divid] = document.getElementById(divid);
    DIV[divid].style.display = 'inline-block';
+   DIV[divid].style.position = 'relative';
    IS_ZOOM[divid] = false;
    const image = document.createElement("img");
    image.id = divid + 'Image';
@@ -158,17 +159,20 @@ function initialize(masterID) {
       const zoom = document.getElementById(masterID + 'Zoom');
 
       zoom.style.backgroundImage = "url('" + img.src + "')";
-      zoom.style.left = imgPosition.x + window.scrollX + 'px';
-      zoom.style.top = imgPosition.y + window.scrollY + 'px';
+      zoom.style.left = 0 + 'px';
+      zoom.style.top = 0 + 'px';
       zoom.style.height = Math.round(imgPosition.height/10) + 'px';
       zoom.style.width = Math.round(imgPosition.width/10) + 'px';
+
+      console.log(imgPosition.x, zoom.style.left);
+      console.log(imgPosition.y, zoom.style.top);
    }
 
    function setStartPosForLens() {
       const lens = document.getElementById(masterID + 'Lens');
 
-      lens.style.left = imgPosition.x + window.scrollX + 'px';
-      lens.style.top = imgPosition.y + window.scrollY + 'px';
+      lens.style.left = 0 + 'px';
+      lens.style.top = 0 + 'px';
       lens.style.height = Math.round(imgPosition.height/10) + 'px';
       lens.style.width = Math.round(imgPosition.width/10) + 'px';
    }
@@ -304,20 +308,20 @@ function update(e, masterID) {
     */
    // Stop the lens resize to go outside picture (top)
    if(lens.getBoundingClientRect().top < imagePosition.top) {
-      lens.style.top = imagePosition.top + window.scrollY + 'px';
+      lens.style.top = 0 + 'px';
    }
    // Stop the lens resize to go outside picture (bottom)
    if(lens.getBoundingClientRect().bottom > imagePosition.bottom) {
-      lens.style.top = lens.getBoundingClientRect().top - (lens.getBoundingClientRect().bottom - imagePosition.bottom) + window.scrollY + 'px';
+      lens.style.top = imagePosition.height - lens.getBoundingClientRect().height + 'px';
    }
 
    // Stop the lens resize to go outside picture (right)
    if(lens.getBoundingClientRect().right > imagePosition.right) {
-      lens.style.left = lens.getBoundingClientRect().left - (lens.getBoundingClientRect().right - imagePosition.right)  + window.scrollX + 'px';
+      lens.style.left = imagePosition.width - lens.getBoundingClientRect().width + 'px';
    }
    // Stop the lens resize to go outside picture (right)
    if(lens.getBoundingClientRect().left < imagePosition.left) {
-      lens.style.left = imagePosition.left + window.scrollX + 'px';
+      lens.style.left = 0 + 'px';
    }
 
    /**
