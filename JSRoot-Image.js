@@ -330,12 +330,12 @@ function update(e, masterID) {
    }
    // Stop the zoom resize to go outside picture (bottom)
    if(zoom.getBoundingClientRect().bottom > window.innerHeight) {
-      zoom.style.top = window.innerHeight - imagePosition.top - lens.getBoundingClientRect().height +  'px';
+      zoom.style.top = window.innerHeight - imagePosition.top - zoom.getBoundingClientRect().height +  'px';
    }
 
    // Stop the zoom resize to go outside picture (right)
    if(zoom.getBoundingClientRect().right > window.innerWidth) {
-      zoom.style.left = window.innerWidth - imagePosition.left - lens.getBoundingClientRect().width + 'px';
+      zoom.style.left = window.innerWidth - zoom.getBoundingClientRect().width - imagePosition.left + 'px';
    }
    // Stop the zoom resize to go outside picture (left)
    if(zoom.getBoundingClientRect().left < 0) {
