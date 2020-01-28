@@ -25,7 +25,7 @@ function drawImage(src, divid) {
    createZoom(divid);
    createLens(divid);
 
-   window.addEventListener('load', function() {
+   image.addEventListener('load', function() {
       initialize(divid);
       createControls(divid);
    });
